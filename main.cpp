@@ -23,23 +23,29 @@ private:
     float posX, posY;
     float velX, velY;
     float accX, accY;
+    float gravity;
     sf::CircleShape shape;
     
 public:
-    Ball(int id, float radius, float posX, float posY, float velX, float velY) {
+    Ball(int id, float radius, float posX, float posY, float velX, float velY, float accX, float accY, float gravity) {
         this->id = id;
         this->radius = radius;
         this->posX = posX;
         this->posY = posY;
         this->velX = velX;
         this->velY = velY;
-        this->accX = 0.f;
-        this->accY = 0.f;
+        this->accX = accX;
+        this->accY = accY;
+        this->gravity = gravity;
         
         shape.setRadius(radius);
         shape.setFillColor(sf::Color::Red);
         shape.setOrigin({radius, radius});
         shape.setPosition({posX, posY});
+    }
+
+    void setGravity(float gravity) {
+        this->gravity = gravity;
     }
     
     float getRadius() {
@@ -86,7 +92,7 @@ public:
     void updateVel() {
         velX += accX * dt;
         velY += accY * dt;
-        velY += g * dt;
+        velY += gravity * dt;
     }
     
     void handleCollisionWalls() {
@@ -115,112 +121,143 @@ public:
     }
 };
 
-float getDist(Ball& ball1, Ball& ball2) {
-    auto [x1, y1] = ball1.getPos();
-    auto [x2, y2] = ball2.getPos();
-    float r1 = ball1.getRadius();
-    float r2 = ball2.getRadius();
-    return sqrt((y2 - y1) * (y2 - y1) + (x2 - x1) * (x2 - x1));
-}
+class SimulatorWindow {
 
-bool detectCollision(Ball& ball1, Ball& ball2) {
-    float d = getDist(ball1, ball2);
-    float r1 = ball1.getRadius();
-    float r2 = ball2.getRadius();
-    return (d <= r1 + r2);
-}
+private:
+    float gravity;
+    sf::RenderWindow window;
+    std::vector<Ball> ballsList;
 
-void handleCollision(Ball& ball1, Ball& ball2) {
-    auto [x1, y1] = ball1.getPos();
-    auto [x2, y2] = ball2.getPos();
-    auto [vx1, vy1] = ball1.getVel();
-    auto [vx2, vy2] = ball2.getVel();
-    
-    float r1 = ball1.getRadius();
-    float r2 = ball2.getRadius();
-
-    float m1 = r1 * r1;
-    float m2 = r2 * r2;
-
-    float v1 = sqrt(vx1 * vx1 + vy1 * vy1);
-    float v2 = sqrt(vx2 * vx2 + vy2 * vy2);
-    float theta1 = atan2(vy1, vx1);
-    float theta2 = atan2(vy2, vx2);
-    float phi = atan2(y2 - y1, x2 - x1);
-
-    float v1n = v1 * cos(theta1 - phi);
-    float v1t = v1 * sin(theta1 - phi);
-    float v2n = v2 * cos(theta2 - phi);
-    float v2t = v2 * sin(theta2 - phi);
-
-    float v1nf = (m1 * v1n + m2 * v2n + m2 * e * (v2n - v1n)) / (m1 + m2);
-    float v2nf = (m1 * v1n + m2 * v2n + m1 * e * (v1n - v2n)) / (m1 + m2);
-
-    float v1fx = v1nf * cos(phi) - v1t * sin(phi);
-    float v1fy = v1nf * sin(phi) + v1t * cos(phi);
-
-    float v2fx = v2nf * cos(phi) - v2t * sin(phi);
-    float v2fy = v2nf * sin(phi) + v2t * cos(phi);
-
-    ball1.setVel(v1fx, v1fy);
-    ball2.setVel(v2fx, v2fy);
-
-    float dist = sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
-    float minSafeDist = r1 + r2;
-    
-    if(dist < minSafeDist) {
-        float overlap = minSafeDist - dist;
-        float nx = (x2 - x1) / dist;
-        float ny = (y2 - y1) / dist;
-
-        float totalM = m1 + m2;
-        ball1.setPos(x1 - nx * overlap * (m2 / totalM), y1 - ny * overlap * (m2 / totalM));
-        ball2.setPos(x2 + nx * overlap * (m1 / totalM), y2 + ny * overlap * (m1 / totalM));
+    float getDist(Ball& ball1, Ball& ball2) {
+        auto [x1, y1] = ball1.getPos();
+        auto [x2, y2] = ball2.getPos();
+        float r1 = ball1.getRadius();
+        float r2 = ball2.getRadius();
+        return sqrt((y2 - y1) * (y2 - y1) + (x2 - x1) * (x2 - x1));
     }
-}
 
-void handleCollisionBalls(std::vector<Ball>& balls) {
-    for(int i = 0; i + 1 < (int)balls.size(); i++) {
-        for(int j = i + 1; j < (int)balls.size(); j++) {
-            if(detectCollision(balls[i], balls[j])) {
-                handleCollision(balls[i], balls[j]);
+    bool detectCollision(Ball& ball1, Ball& ball2) {
+        float d = getDist(ball1, ball2);
+        float r1 = ball1.getRadius();
+        float r2 = ball2.getRadius();
+        return (d <= r1 + r2);
+    }
+
+    void handleCollision(Ball& ball1, Ball& ball2) {
+        auto [x1, y1] = ball1.getPos();
+        auto [x2, y2] = ball2.getPos();
+        auto [vx1, vy1] = ball1.getVel();
+        auto [vx2, vy2] = ball2.getVel();
+        
+        float r1 = ball1.getRadius();
+        float r2 = ball2.getRadius();
+
+        float m1 = r1 * r1;
+        float m2 = r2 * r2;
+
+        float v1 = sqrt(vx1 * vx1 + vy1 * vy1);
+        float v2 = sqrt(vx2 * vx2 + vy2 * vy2);
+        float theta1 = atan2(vy1, vx1);
+        float theta2 = atan2(vy2, vx2);
+        float phi = atan2(y2 - y1, x2 - x1);
+
+        float v1n = v1 * cos(theta1 - phi);
+        float v1t = v1 * sin(theta1 - phi);
+        float v2n = v2 * cos(theta2 - phi);
+        float v2t = v2 * sin(theta2 - phi);
+
+        float v1nf = (m1 * v1n + m2 * v2n + m2 * e * (v2n - v1n)) / (m1 + m2);
+        float v2nf = (m1 * v1n + m2 * v2n + m1 * e * (v1n - v2n)) / (m1 + m2);
+
+        float v1fx = v1nf * cos(phi) - v1t * sin(phi);
+        float v1fy = v1nf * sin(phi) + v1t * cos(phi);
+
+        float v2fx = v2nf * cos(phi) - v2t * sin(phi);
+        float v2fy = v2nf * sin(phi) + v2t * cos(phi);
+
+        ball1.setVel(v1fx, v1fy);
+        ball2.setVel(v2fx, v2fy);
+
+        float dist = sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
+        float minSafeDist = r1 + r2;
+        
+        if(dist < minSafeDist) {
+            float overlap = minSafeDist - dist;
+            float nx = (x2 - x1) / dist;
+            float ny = (y2 - y1) / dist;
+
+            float totalM = m1 + m2;
+            ball1.setPos(x1 - nx * overlap * (m2 / totalM), y1 - ny * overlap * (m2 / totalM));
+            ball2.setPos(x2 + nx * overlap * (m1 / totalM), y2 + ny * overlap * (m1 / totalM));
+        }
+    }
+
+    void handleCollisionBalls(std::vector<Ball>& balls) {
+        for(int i = 0; i + 1 < (int)balls.size(); i++) {
+            for(int j = i + 1; j < (int)balls.size(); j++) {
+                if(detectCollision(balls[i], balls[j])) {
+                    handleCollision(balls[i], balls[j]);
+                }
             }
         }
     }
-}
+
+public:
+    SimulatorWindow(std::string name) : window(sf::VideoMode({WINDOW_WIDTH, WINDOW_HEIGHT}), name) {
+        window.setFramerateLimit(FPS);
+    }
+
+    void setGravity(float gravity) {
+        this->gravity = gravity;
+    }
+    
+    void addBall(int id, float radius, float posX, float posY) {
+        ballsList.push_back(Ball(id, radius, posX, posY, 0.f, 0.f, 0.f, 0.f, gravity));
+    }
+
+    void addBall(int id, float radius, float posX, float posY, float velX, float velY) {
+        ballsList.push_back(Ball(id, radius, posX, posY, velX, velY, 0.f, 0.f, gravity));
+    }
+
+    void addBall(int id, float radius, float posX, float posY, float velX, float velY, float accX, float accY) {
+        ballsList.push_back(Ball(id, radius, posX, posY, velX, velY, accX, accY, gravity));
+    }
+
+    void run() {
+        while(window.isOpen()) {
+            while(const std::optional event = window.pollEvent()) {
+                if(event->is<sf::Event::Closed>()) window.close();
+            }
+
+            window.clear(sf::Color::Black);
+            for(Ball& ball : ballsList) {
+                ball.simulate(window);
+            }
+            handleCollisionBalls(ballsList);
+            window.display();
+        }
+    }
+};
 
 int main() {
-    sf::RenderWindow window(sf::VideoMode({WINDOW_WIDTH, WINDOW_HEIGHT}), "Balls Simulator");
-    window.setFramerateLimit(FPS);
-
+    SimulatorWindow window("Test Simulator");
+    window.setGravity(500.0f);
+    
     std::random_device rd;
     std::mt19937 gen(rd());
 
     std::uniform_real_distribution<float> posDist(50.0f, 750.0f); 
     std::uniform_real_distribution<float> velDist(-200.0f, 200.0f);
     
-    std::vector<Ball> ballsList;
     for(int i = 0; i < 15; i++) {
         float randomX = posDist(gen);
         float randomY = posDist(gen);
         float randomVX = velDist(gen);
         float randomVY = velDist(gen);
-
-        ballsList.push_back(Ball(i, 15.0f, randomX, randomY, randomVX, randomVY));
+        window.addBall(i, 15.0f, randomX, randomY, randomVX, randomVY);
     }
     
-    while(window.isOpen()) {
-        while(const std::optional event = window.pollEvent()) {
-            if(event->is<sf::Event::Closed>()) window.close();
-        }
-
-        window.clear(sf::Color::Black);
-        for(Ball& ball : ballsList) {
-            ball.simulate(window);
-        }
-        handleCollisionBalls(ballsList);
-        window.display();
-    }
+    window.run();
 
     return 0;
 }
