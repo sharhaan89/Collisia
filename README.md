@@ -1,10 +1,16 @@
+<h1>3D CUBE</h1>
 <img width="708" height="734" alt="image" src="https://github.com/user-attachments/assets/c1d446ca-a567-4bb3-829e-6748248afeec" />
 
+<h1>GRAPHER</h1>
 <img width="703" height="732" alt="image" src="https://github.com/user-attachments/assets/cfa38cc7-468d-454a-ac2c-3f4dcd1a9b8e" />
 
+<h1>BREAKOUT GAME</h1>
 <img width="1398" height="884" alt="image" src="https://github.com/user-attachments/assets/3ccda407-b6ca-478e-9bfc-5cc622237076" />
 
+<h1>PENDULUM</h1>
 <img width="561" height="568" alt="image" src="https://github.com/user-attachments/assets/09738c81-9677-4c0a-ad83-628bee8567e3" />
 
-<img width="803" height="839" alt="image" src="https://github.com/user-attachments/assets/c31210f8-bfa6-497d-bdf5-a448836246db" />
+<h1>BALLS WITH GRAVITY AND COLLISIONS</h1>
+<img width="801" height="837" alt="image" src="https://github.com/user-attachments/assets/c5a6c2b7-64cb-4371-a311-39f0aa995851" />
+
 
