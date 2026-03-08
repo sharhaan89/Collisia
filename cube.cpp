@@ -258,14 +258,27 @@ int main() {
     
     addVertices();
 
+    sf::Texture backgroundTexture;
+    backgroundTexture.loadFromFile("background.png");
+    sf::Sprite backgroundSprite(backgroundTexture);
+    backgroundSprite.setScale({
+        float(window.getSize().x) / backgroundTexture.getSize().x,
+        float(window.getSize().y) / backgroundTexture.getSize().y
+    });
+    sf::SoundBuffer portalBuffer;
     sf::SoundBuffer rotationBuffer;
     sf::SoundBuffer zoomBuffer;
+    portalBuffer.loadFromFile("portal.wav");
     rotationBuffer.loadFromFile("rotate.wav");
     zoomBuffer.loadFromFile("zoom.wav");
+    sf::Sound portalSound(portalBuffer);
     sf::Sound rotationSound(rotationBuffer);
     sf::Sound zoomSound(zoomBuffer);
+    portalSound.setLooping(true);
     rotationSound.setLooping(true);
     zoomSound.setLooping(true);
+
+    portalSound.play();
 
     sf::Font font;
     if(!font.openFromFile("../../fonts/arial.ttf")) {
@@ -276,11 +289,15 @@ int main() {
     sf::Text angleYInfo(font);
     sf::Text angleZInfo(font);
 
-    float margin = 500.f;
+    float margin = 200.f;
     focalInfo.setCharacterSize(25);
     angleXInfo.setCharacterSize(25);
     angleYInfo.setCharacterSize(25);
     angleZInfo.setCharacterSize(25);
+    focalInfo.setFillColor(sf::Color::Black);
+    angleXInfo.setFillColor(sf::Color::Black);
+    angleYInfo.setFillColor(sf::Color::Black);
+    angleZInfo.setFillColor(sf::Color::Black);
 
     auto bounds = focalInfo.getLocalBounds();
     focalInfo.setPosition({WINDOW_WIDTH - bounds.size.x - margin, 10});
@@ -353,6 +370,7 @@ int main() {
         angleXInfo.setString("Angle X: " + std::to_string((int)std::round(angleX)));
         angleYInfo.setString("Angle Y: " + std::to_string((int)std::round(angleY)));
         angleZInfo.setString("Angle Z: " + std::to_string((int)std::round(angleZ)));
+        window.draw(backgroundSprite);
         drawCube(window);
         window.draw(focalInfo);
         window.draw(angleXInfo);
