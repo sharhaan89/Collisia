@@ -1,6 +1,7 @@
 #include <SFML/Graphics.hpp>
 #include <cmath>
 #include <utility>
+#include <algorithm>
 #include <vector>
 
 #define FPS 60
@@ -67,6 +68,13 @@ struct Triangle {
 
 std::vector<Triangle> triangles;
 
+float getTriangleDepth(Triangle& t) {
+    float z1 = t.v1.z - camZ;
+    float z2 = t.v2.z - camZ;
+    float z3 = t.v3.z - camZ;
+    return (z1 + z2 + z3) / 3.f;
+}
+
 void addVertices() {
     triangles.clear();
 
@@ -77,7 +85,7 @@ void addVertices() {
     float front = cz - cubeSize * 0.5f;
     float back = cz + cubeSize * 0.5f;
 
-    //Back face
+    //Bottom face
     triangles.push_back(Triangle{{left, top, back}, {right, top, back}, {left, bottom, back}, 'B'});
     triangles.push_back(Triangle{{right, top, back}, {right, bottom, back}, {left, bottom, back}, 'B'});
 
@@ -89,15 +97,15 @@ void addVertices() {
     triangles.push_back(Triangle{{right, top, front}, {right, top, back}, {right, bottom, front}, 'G'});
     triangles.push_back(Triangle{{right, top, back}, {right, bottom, back}, {right, bottom, front}, 'G'});
 
-    //Top face
+    //Back face
     triangles.push_back(Triangle{{left, top, back}, {right, top, back}, {left, top, front}, 'M'});
     triangles.push_back(Triangle{{right, top, back}, {right, top, front}, {left, top, front}, 'M'});
 
-    //Bottom face
+    //Front face
     triangles.push_back(Triangle{{left, bottom, front}, {right, bottom, front}, {left, bottom, back}, 'R'});
     triangles.push_back(Triangle{{right, bottom, front}, {right, bottom, back}, {left, bottom, back}, 'R'});
 
-    //Front face
+    //Top face
     triangles.push_back(Triangle{{left, top, front}, {right, top, front}, {left, bottom, front}, 'Y'});
     triangles.push_back(Triangle{{right, top, front}, {right, bottom, front}, {left, bottom, front}, 'Y'});
 }
@@ -109,6 +117,7 @@ y′ = xsinθ + ycosθ
 
 void rotateX(float dir) {
     float angle = (3.14 / 180) * rotationSpeed * dir;
+    angleX += rotationSpeed * dir;
     float y, z;
     for(int i = 0; i < 12; i++) {
         auto t = triangles[i];
@@ -131,6 +140,7 @@ void rotateX(float dir) {
 
 void rotateY(float dir) {
     float angle = (3.14 / 180) * rotationSpeed * dir;
+    angleY += rotationSpeed * dir;
     float x, z;
     for(int i = 0; i < 12; i++) {
         auto t = triangles[i];
@@ -153,6 +163,7 @@ void rotateY(float dir) {
 
 void rotateZ(float dir) {
     float angle = (3.14 / 180) * rotationSpeed * dir;
+    angleZ += rotationSpeed * dir;
     float x, y;
     for(int i = 0; i < 12; i++) {
         auto t = triangles[i];
@@ -173,7 +184,7 @@ void rotateZ(float dir) {
     }
 }
 
-std::pair<bool, Point> transformVertex(Vertex vertex) {
+std::pair<bool, Point> transformVertex(Vertex& vertex) {
     float viewX = vertex.x - camX;
     float viewY = vertex.y - camY;
     float viewZ = vertex.z - camZ;
@@ -191,7 +202,7 @@ std::pair<bool, Point> transformVertex(Vertex vertex) {
     return {true, Point{pixelX, pixelY}};
 }
 
-void drawTriangle(sf::RenderWindow& window, Triangle tr) {
+void drawTriangle(sf::RenderWindow& window, Triangle& tr) {
     auto r1 = transformVertex(tr.v1);
     auto r2 = transformVertex(tr.v2);
     auto r3 = transformVertex(tr.v3);
@@ -214,7 +225,14 @@ void drawTriangle(sf::RenderWindow& window, Triangle tr) {
     window.draw(triangle);
 }
 
+void paintersAlgorithm() {
+    std::sort(triangles.begin(), triangles.end(), [](Triangle& a, Triangle& b) {
+        return getTriangleDepth(a) > getTriangleDepth(b);
+    });
+}
+
 void drawCube(sf::RenderWindow& window) {
+    paintersAlgorithm();
     for(auto& triangle : triangles) {
         drawTriangle(window, triangle);
     }
@@ -226,6 +244,33 @@ int main() {
     
     addVertices();
 
+    sf::Font font;
+    if(!font.openFromFile("../../fonts/arial.ttf")) {
+        //handle error
+    }
+    sf::Text focalInfo(font);
+    sf::Text angleXInfo(font);
+    sf::Text angleYInfo(font);
+    sf::Text angleZInfo(font);
+
+    float margin = 500.f;
+    focalInfo.setCharacterSize(25);
+    angleXInfo.setCharacterSize(25);
+    angleYInfo.setCharacterSize(25);
+    angleZInfo.setCharacterSize(25);
+
+    auto bounds = focalInfo.getLocalBounds();
+    focalInfo.setPosition({WINDOW_WIDTH - bounds.size.x - margin, 10});
+
+    bounds = angleXInfo.getLocalBounds();
+    angleXInfo.setPosition({WINDOW_WIDTH - bounds.size.x - margin, 40});
+
+    bounds = angleYInfo.getLocalBounds();
+    angleYInfo.setPosition({WINDOW_WIDTH - bounds.size.x - margin, 70});
+
+    bounds = angleZInfo.getLocalBounds();
+    angleZInfo.setPosition({WINDOW_WIDTH - bounds.size.x - margin, 100});
+
     while(window.isOpen()) {
         while(const std::optional event = window.pollEvent()) {
             if(event->is<sf::Event::Closed>()) {
@@ -233,13 +278,13 @@ int main() {
             }
         }
 
-        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left)) {
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
             rotateY(1);
-        } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right)) {
+        } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
             rotateY(-1);
-        } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up)) {
+        } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W)) {
             rotateX(1);
-        } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down)) {
+        } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)) {
             rotateX(-1);
         } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Q)) {
             rotateZ(1);
@@ -252,7 +297,15 @@ int main() {
         }
 
         window.clear();
+        focalInfo.setString("Focal length: " + std::to_string((int)f));
+        angleXInfo.setString("Angle X: " + std::to_string((int)angleX));
+        angleYInfo.setString("Angle Y: " + std::to_string((int)angleY));
+        angleZInfo.setString("Angle Z: " + std::to_string((int)angleZ));
         drawCube(window);
+        window.draw(focalInfo);
+        window.draw(angleXInfo);
+        window.draw(angleYInfo);
+        window.draw(angleZInfo);
         window.display();
     }
 }
