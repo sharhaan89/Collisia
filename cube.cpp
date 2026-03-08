@@ -1,8 +1,13 @@
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 #include <cmath>
 #include <utility>
 #include <algorithm>
 #include <vector>
+#include <windows.h>
+#include <mmsystem.h>
+
+#pragma comment(lib, "winmm.lib")
 
 #define FPS 60
 #define WINDOW_WIDTH 700
@@ -21,6 +26,9 @@ float cz = 10.f;
 float camX = 0.f;
 float camY = 0.f;
 float camZ = 0.f;
+
+bool rotating = false;  
+bool zooming = false;
 
 void setCamera(float x, float y, float z) {
     camX = x;
@@ -118,6 +126,8 @@ y′ = xsinθ + ycosθ
 void rotateX(float dir) {
     float angle = (3.14 / 180) * rotationSpeed * dir;
     angleX += rotationSpeed * dir;
+    angleX = fmod(angleX, 360.f);
+    if(angleX < 0) angleX += 360.f;
     float y, z;
     for(int i = 0; i < 12; i++) {
         auto t = triangles[i];
@@ -141,6 +151,8 @@ void rotateX(float dir) {
 void rotateY(float dir) {
     float angle = (3.14 / 180) * rotationSpeed * dir;
     angleY += rotationSpeed * dir;
+    angleY = fmod(angleY, 360.f);
+    if(angleY < 0) angleY += 360.f;
     float x, z;
     for(int i = 0; i < 12; i++) {
         auto t = triangles[i];
@@ -164,6 +176,8 @@ void rotateY(float dir) {
 void rotateZ(float dir) {
     float angle = (3.14 / 180) * rotationSpeed * dir;
     angleZ += rotationSpeed * dir;
+    angleZ = fmod(angleZ, 360.f);
+    if(angleZ < 0) angleZ += 360.f;
     float x, y;
     for(int i = 0; i < 12; i++) {
         auto t = triangles[i];
@@ -244,6 +258,15 @@ int main() {
     
     addVertices();
 
+    sf::SoundBuffer rotationBuffer;
+    sf::SoundBuffer zoomBuffer;
+    rotationBuffer.loadFromFile("rotate.wav");
+    zoomBuffer.loadFromFile("zoom.wav");
+    sf::Sound rotationSound(rotationBuffer);
+    sf::Sound zoomSound(zoomBuffer);
+    rotationSound.setLooping(true);
+    zoomSound.setLooping(true);
+
     sf::Font font;
     if(!font.openFromFile("../../fonts/arial.ttf")) {
         //handle error
@@ -278,29 +301,58 @@ int main() {
             }
         }
 
+        rotating = false;
+        zooming = false;
+
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
             rotateY(1);
+            rotating = true;
         } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
             rotateY(-1);
+            rotating = true;
         } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W)) {
             rotateX(1);
+            rotating = true;
         } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)) {
             rotateX(-1);
+            rotating = true;
         } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Q)) {
             rotateZ(1);
+            rotating = true;
         } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::E)) {
             rotateZ(-1);
+            rotating = true;
         } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num1)) {
             f += 10;
+            zooming = true;
         } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num2)) {
             f -= 10;
+            zooming = true;
+        }
+
+        if(rotating) {
+            if(rotationSound.getStatus() != sf::Sound::Status::Playing)
+                rotationSound.play();
+        } else {
+            if(rotationSound.getStatus() == sf::Sound::Status::Playing)
+                rotationSound.stop();
+        }
+
+        if(zooming) {
+            if(zoomSound.getStatus() != sf::Sound::Status::Playing) {
+                zoomSound.play();
+            }
+        } else {
+            if(zoomSound.getStatus() == sf::Sound::Status::Playing) {
+                zoomSound.stop();
+            }
         }
 
         window.clear();
         focalInfo.setString("Focal length: " + std::to_string((int)f));
-        angleXInfo.setString("Angle X: " + std::to_string((int)angleX));
-        angleYInfo.setString("Angle Y: " + std::to_string((int)angleY));
-        angleZInfo.setString("Angle Z: " + std::to_string((int)angleZ));
+        angleXInfo.setString("Angle X: " + std::to_string((int)std::round(angleX)));
+        angleYInfo.setString("Angle Y: " + std::to_string((int)std::round(angleY)));
+        angleZInfo.setString("Angle Z: " + std::to_string((int)std::round(angleZ)));
         drawCube(window);
         window.draw(focalInfo);
         window.draw(angleXInfo);
