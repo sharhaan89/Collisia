@@ -6,9 +6,9 @@
 #define FPS 60
 #define WINDOW_WIDTH 700
 #define WINDOW_HEIGHT 700
-#define f 400.0f
 #define rotationSpeed 7.f
 
+float f = 400.0f;
 float angleX = 0.f;
 float angleY = 0.f;
 float angleZ = 0.f;
@@ -245,6 +245,10 @@ int main() {
             rotateZ(1);
         } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::E)) {
             rotateZ(-1);
+        } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num1)) {
+            f += 10;
+        } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num2)) {
+            f -= 10;
         }
 
         window.clear();
