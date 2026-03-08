@@ -7,7 +7,11 @@
 #define WINDOW_WIDTH 700
 #define WINDOW_HEIGHT 700
 #define f 400.0f
+#define rotationSpeed 7.f
 
+float angleX = 0.f;
+float angleY = 0.f;
+float angleZ = 0.f;
 float cubeSize = 3.f;
 float cx = 0.f;
 float cy = 0.f;
@@ -98,6 +102,77 @@ void addVertices() {
     triangles.push_back(Triangle{{right, top, front}, {right, bottom, front}, {left, bottom, front}, 'Y'});
 }
 
+/*
+x′ = xcosθ − ysinθ
+y′ = xsinθ + ycosθ
+*/
+
+void rotateX(float dir) {
+    float angle = (3.14 / 180) * rotationSpeed * dir;
+    float y, z;
+    for(int i = 0; i < 12; i++) {
+        auto t = triangles[i];
+        y = t.v1.y - cy;
+        z = t.v1.z - cz;
+        triangles[i].v1.y = y * cos(angle) - z * sin(angle) + cy;
+        triangles[i].v1.z = y * sin(angle) + z * cos(angle) + cz;
+
+        y = t.v2.y - cy;
+        z = t.v2.z - cz;
+        triangles[i].v2.y = y * cos(angle) - z * sin(angle) + cy;
+        triangles[i].v2.z = y * sin(angle) + z * cos(angle) + cz;
+
+        y = t.v3.y - cy;
+        z = t.v3.z - cz;
+        triangles[i].v3.y = y * cos(angle) - z * sin(angle) + cy;
+        triangles[i].v3.z = y * sin(angle) + z * cos(angle) + cz;
+    }
+}
+
+void rotateY(float dir) {
+    float angle = (3.14 / 180) * rotationSpeed * dir;
+    float x, z;
+    for(int i = 0; i < 12; i++) {
+        auto t = triangles[i];
+        x = t.v1.x - cx;
+        z = t.v1.z - cz;
+        triangles[i].v1.x = x * cos(angle) + z * sin(angle) + cx;
+        triangles[i].v1.z = -x * sin(angle) + z * cos(angle) + cz;
+
+        x = t.v2.x - cx;
+        z = t.v2.z - cz;
+        triangles[i].v2.x = x * cos(angle) + z * sin(angle) + cx;
+        triangles[i].v2.z = -x * sin(angle) + z * cos(angle) + cz;
+
+        x = t.v3.x - cx;
+        z = t.v3.z - cz;
+        triangles[i].v3.x = x * cos(angle) + z * sin(angle) + cx;
+        triangles[i].v3.z = -x * sin(angle) + z * cos(angle) + cz;
+    }
+}
+
+void rotateZ(float dir) {
+    float angle = (3.14 / 180) * rotationSpeed * dir;
+    float x, y;
+    for(int i = 0; i < 12; i++) {
+        auto t = triangles[i];
+        x = t.v1.x - cx;
+        y = t.v1.y - cy;
+        triangles[i].v1.x = x * cos(angle) - y * sin(angle) + cx;
+        triangles[i].v1.y = x * sin(angle) + y * cos(angle) + cy;
+
+        x = t.v2.x - cx;
+        y = t.v2.y - cy;
+        triangles[i].v2.x = x * cos(angle) - y * sin(angle) + cx;
+        triangles[i].v2.y = x * sin(angle) + y * cos(angle) + cy;
+
+        x = t.v3.x - cx;
+        y = t.v3.y - cy;
+        triangles[i].v3.x = x * cos(angle) - y * sin(angle) + cx;
+        triangles[i].v3.y = x * sin(angle) + y * cos(angle) + cy;
+    }
+}
+
 std::pair<bool, Point> transformVertex(Vertex vertex) {
     float viewX = vertex.x - camX;
     float viewY = vertex.y - camY;
@@ -157,6 +232,21 @@ int main() {
                 window.close();
             }
         }
+
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left)) {
+            rotateY(1);
+        } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right)) {
+            rotateY(-1);
+        } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up)) {
+            rotateX(1);
+        } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down)) {
+            rotateX(-1);
+        } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Q)) {
+            rotateZ(1);
+        } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::E)) {
+            rotateZ(-1);
+        }
+
         window.clear();
         drawCube(window);
         window.display();
