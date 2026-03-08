@@ -1,5 +1,5 @@
 <h1>3D CUBE</h1>
-<img width="708" height="734" alt="image" src="https://github.com/user-attachments/assets/c1d446ca-a567-4bb3-829e-6748248afeec" />
+<img width="695" height="725" alt="image" src="https://github.com/user-attachments/assets/947f972e-d511-4a12-bdc5-3c6f9d18ad12" />
 
 <h1>GRAPHER</h1>
 <img width="703" height="732" alt="image" src="https://github.com/user-attachments/assets/cfa38cc7-468d-454a-ac2c-3f4dcd1a9b8e" />
