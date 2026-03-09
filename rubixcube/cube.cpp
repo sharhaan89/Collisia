@@ -2,6 +2,8 @@
 
 #pragma comment(lib, "winmm.lib")
 
+using TriangleUtils::Triangle;
+
 #include <cmath>
 #include <utility>
 #include <algorithm>

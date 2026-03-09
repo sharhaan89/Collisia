@@ -1,0 +1,72 @@
+#include "triangle_utils.hpp"
+
+namespace TriangleUtils {
+
+float getTriangleDepth(Triangle& t, float camZ) {
+    float z1 = t.v1.z - camZ;
+    float z2 = t.v2.z - camZ;
+    float z3 = t.v3.z - camZ;
+    return (z1 + z2 + z3) / 3.f;
+}
+
+std::pair<bool, Point> transformVertex(Vertex& vertex, float camX, float camY, float camZ, float f, float WINDOW_WIDTH, float WINDOW_HEIGHT) {
+    float viewX = vertex.x - camX;
+    float viewY = vertex.y - camY;
+    float viewZ = vertex.z - camZ;
+
+    if(viewZ <= 0) {
+        return {false, Point{0.f, 0.f}};
+    }
+
+    float screenX = viewX / viewZ * f;
+    float screenY = viewY / viewZ * f;
+
+    float pixelX = screenX + WINDOW_WIDTH * 0.5f;
+    float pixelY = WINDOW_HEIGHT * 0.5f - screenY;
+
+    return {true, Point{pixelX, pixelY}};
+}
+
+sf::Color getColor(char color) {
+    sf::Color resColor;
+    switch(color) {
+        case 'R': resColor = sf::Color::Red; break;
+        case 'B': resColor = sf::Color::Blue; break;
+        case 'G': resColor = sf::Color::Green; break;
+        case 'Y': resColor = sf::Color::Yellow; break;
+        case 'C': resColor = sf::Color::Cyan; break;
+        case 'M': resColor = sf::Color::Magenta; break;
+        default: resColor = sf::Color::White;
+    }
+    return resColor;
+}
+
+void drawTriangle(sf::RenderWindow& window, Triangle& tr, float camX, float camY, float camZ, float f) {
+    float WINDOW_WIDTH = window.getSize().x;
+    float WINDOW_HEIGHT = window.getSize().y;
+
+    auto r1 = transformVertex(tr.v1, camX, camY, camZ, f, WINDOW_WIDTH, WINDOW_HEIGHT);
+    auto r2 = transformVertex(tr.v2, camX, camY, camZ, f, WINDOW_WIDTH, WINDOW_HEIGHT);
+    auto r3 = transformVertex(tr.v3, camX, camY, camZ, f, WINDOW_WIDTH, WINDOW_HEIGHT);
+
+    if(!r1.first || !r2.first || !r3.first) {
+        return;
+    }
+
+    Point p1 = r1.second;
+    Point p2 = r2.second;
+    Point p3 = r3.second;
+
+    sf::ConvexShape triangle;
+    triangle.setPointCount(3);
+    triangle.setPoint(0, sf::Vector2f(p1.x, p1.y));
+    triangle.setPoint(1, sf::Vector2f(p2.x, p2.y));
+    triangle.setPoint(2, sf::Vector2f(p3.x, p3.y));
+    triangle.setFillColor(getColor(tr.color));
+    triangle.setOutlineThickness(1.f);
+    triangle.setOutlineColor(sf::Color::Cyan);
+
+    window.draw(triangle);   
+}
+
+}

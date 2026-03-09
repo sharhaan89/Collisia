@@ -189,7 +189,7 @@ void startGame(sf::RenderWindow& window) {
     
     //configure the font for messages
     sf::Font font;
-    if(!font.openFromFile("../../fonts/arial.ttf")) {
+    if(!font.openFromFile("../../../fonts/arial.ttf")) {
         // handle error
     }
     sf::Text message(font);

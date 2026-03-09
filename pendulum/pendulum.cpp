@@ -1,11 +1,6 @@
 #include <SFML/Graphics.hpp>
 #include <cmath>
 
-/*
-this is manually made without using the engine i wrote earlier
-gotta add this to the engine as well later so i can add pendulums as many as i can :)
-*/
-
 #define radius 20.0f
 #define gravity 1
 #define FPS 60
@@ -67,6 +62,4 @@ int main() {
         window.draw(pendulum);
         window.display();
     }
-
-    return 0;
 }

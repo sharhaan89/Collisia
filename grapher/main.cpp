@@ -99,7 +99,7 @@ void drawGrids(sf::RenderWindow& window) {
 void drawSine(sf::RenderWindow& window) {
     for(float px = -WINDOW_WIDTH * 0.5f; px <= WINDOW_WIDTH * 0.5f; px += gap) {
         float x = px / scale;
-        float y = sin(x);
+        float y = -sin(x);
         float py = y * scale;
         drawPoint(window, px, py, 'B');
     }
@@ -109,11 +109,42 @@ void drawSine(sf::RenderWindow& window) {
 void drawCosine(sf::RenderWindow& window) {
     for(float px = -WINDOW_WIDTH * 0.5f; px <= WINDOW_WIDTH * 0.5f; px += gap) {
         float x = px / scale;
-        float y = cos(x);
+        float y = -cos(x);
         float py = y * scale;
         drawPoint(window, px, py, 'Y');
     }
 }
+
+//y = x^3
+void drawCubic(sf::RenderWindow& window) {
+    for(float px = -WINDOW_WIDTH * 0.5f; px <= WINDOW_WIDTH * 0.5f; px += gap) {
+        float x = px / scale;
+        float y = - x * x;
+        float py = y * scale;
+        drawPoint(window, px, py, 'G');
+    }
+}
+
+void drawGaussianBellCurve(sf::RenderWindow& window) {
+    //y = exp(-x^2) * sin(5*x)
+    for(float px = -WINDOW_WIDTH * 0.5f; px <= WINDOW_WIDTH * 0.5f; px += gap) {
+        float x = px / scale;
+        float y = - exp(- x * x);
+        float py = y * scale;
+        drawPoint(window, px, py, 'R');
+    }
+}
+
+/*
+we can basically draw any function now
+but need to write the equation manually
+we need a parser or some shit
+
+rules:
+x^n -> x * x * ... * x (n times)
+rest remains mostly same actually?
+*/
+
 
 int main() {
     sf::RenderWindow window(sf::VideoMode({WINDOW_WIDTH, WINDOW_HEIGHT}), "Grapher!", sf::Style::Titlebar | sf::Style::Close);
@@ -154,6 +185,8 @@ int main() {
         drawLine(window, 1, 1);
         drawSine(window);
         drawCosine(window);
+        drawCubic(window);
+        drawGaussianBellCurve(window);
         window.draw(zoomOutButton);
         window.draw(zoomInButton);
         window.draw(gridToggleButton);

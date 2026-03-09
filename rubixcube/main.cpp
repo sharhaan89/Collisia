@@ -1,4 +1,5 @@
 #include "cube.hpp"
+#include "triangle_utils.hpp"
 #include <SFML/Audio.hpp>
 #include <vector>
 #include <algorithm>
@@ -8,6 +9,8 @@
 #define rotationSpeed 7.f
 // #define WINDOW_WIDTH 700
 // #define WINDOW_HEIGHT 700
+
+using TriangleUtils::Triangle;
 
 float f = 400.0f;
 float cubeSize = 1.f;
@@ -22,71 +25,7 @@ bool rotating = false;
 bool zooming = false;
 
 std::vector<Cube> rubixCube;
-std::vector<Triangle> triangles;
-
-float getTriangleDepth(Triangle& t) {
-    float z1 = t.v1.z - camZ;
-    float z2 = t.v2.z - camZ;
-    float z3 = t.v3.z - camZ;
-    return (z1 + z2 + z3) / 3.f;
-}
-
-std::pair<bool, Point> transformVertex(Vertex& vertex) {
-    float viewX = vertex.x - camX;
-    float viewY = vertex.y - camY;
-    float viewZ = vertex.z - camZ;
-
-    if(viewZ <= 0) {
-        return {false, Point{0.f, 0.f}};
-    }
-
-    float screenX = viewX / viewZ * f;
-    float screenY = viewY / viewZ * f;
-
-    float pixelX = screenX + WINDOW_WIDTH * 0.5f;
-    float pixelY = WINDOW_HEIGHT * 0.5f - screenY;
-
-    return {true, Point{pixelX, pixelY}};
-}
-
-sf::Color getColor(char color) {
-    sf::Color resColor;
-    switch(color) {
-        case 'R': resColor = sf::Color::Red; break;
-        case 'B': resColor = sf::Color::Blue; break;
-        case 'G': resColor = sf::Color::Green; break;
-        case 'Y': resColor = sf::Color::Yellow; break;
-        case 'C': resColor = sf::Color::Cyan; break;
-        case 'M': resColor = sf::Color::Magenta; break;
-        default: resColor = sf::Color::White;
-    }
-    return resColor;
-}
-
-void drawTriangle(sf::RenderWindow& window, Triangle& tr) {
-    auto r1 = transformVertex(tr.v1);
-    auto r2 = transformVertex(tr.v2);
-    auto r3 = transformVertex(tr.v3);
-
-    if(!r1.first || !r2.first || !r3.first) {
-        return;
-    }
-
-    Point p1 = r1.second;
-    Point p2 = r2.second;
-    Point p3 = r3.second;
-
-    sf::ConvexShape triangle;
-    triangle.setPointCount(3);
-    triangle.setPoint(0, sf::Vector2f(p1.x, p1.y));
-    triangle.setPoint(1, sf::Vector2f(p2.x, p2.y));
-    triangle.setPoint(2, sf::Vector2f(p3.x, p3.y));
-    triangle.setFillColor(getColor(tr.color));
-    triangle.setOutlineThickness(1.f);
-    triangle.setOutlineColor(sf::Color::Cyan);
-
-    window.draw(triangle);
-}
+std::vector<TriangleUtils::Triangle> triangles;
 
 //painters for all
 void drawCubes(sf::RenderWindow& window) {
@@ -97,10 +36,10 @@ void drawCubes(sf::RenderWindow& window) {
         triangles.insert(triangles.end(), currentTriangles.begin(), currentTriangles.end());
     }
     std::sort(triangles.begin(), triangles.end(), [](Triangle& a, Triangle& b) {
-        return getTriangleDepth(a) > getTriangleDepth(b);
+        return getTriangleDepth(a, camZ) > getTriangleDepth(b, camZ);
     });
     for(auto& triangle : triangles) {
-        drawTriangle(window, triangle);
+        drawTriangle(window, triangle, camX, camY, camZ, f);
     }
 }
 
@@ -146,10 +85,10 @@ int main() {
     rotationSound.setLooping(true);
     zoomSound.setLooping(true);
 
-    portalSound.play();
+    //portalSound.play();
 
     sf::Font font;
-    if(!font.openFromFile("../../fonts/arial.ttf")) {
+    if(!font.openFromFile("../../../fonts/arial.ttf")) {
         //handle error
     }
     sf::Text focalInfo(font);

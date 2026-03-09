@@ -281,7 +281,7 @@ int main() {
     portalSound.play();
 
     sf::Font font;
-    if(!font.openFromFile("../../fonts/arial.ttf")) {
+    if(!font.openFromFile("../../../fonts/arial.ttf")) {
         //handle error
     }
     sf::Text focalInfo(font);
