@@ -69,6 +69,12 @@ void drawCubes(sf::RenderWindow& window) {
     }
 }
 
+void resetCube() {
+    rubixCube.clear();
+    triangles.clear();
+    createCubes();
+}
+
 //just rotates a face
 void rotateFaceX(int x) {
     auto& centerCube = getCube(x, 2, 2);
@@ -235,7 +241,9 @@ int main() {
         rotating = false;
         zooming = false;
 
-        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::R)) {
+            resetCube();
+        } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
             for(auto& cube : rubixCube) cube.rotateY(1, rotationSpeed, ox, oy, oz);
             rotating = true;
         } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {

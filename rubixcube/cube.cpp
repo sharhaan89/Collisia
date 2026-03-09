@@ -203,11 +203,11 @@ void Cube::rotateAxis(float dir, float rotation, float ox, float oy, float oz, f
         float y = py - oy;
         float z = pz - oz;
 
-        float dot = ux*x + uy*y + uz*z;
+        float dot = ux * x + uy * y + uz * z;
 
-        float crossX = uy*z - uz*y;
-        float crossY = uz*x - ux*z;
-        float crossZ = ux*y - uy*x;
+        float crossX = uy * z - uz * y;
+        float crossY = uz * x - ux * z;
+        float crossZ = ux * y - uy * x;
 
         px = x * cosA + crossX * sinA + ux * dot * (1.f - cosA) + ox;
         py = y * cosA + crossY * sinA + uy * dot * (1.f - cosA) + oy;
