@@ -14,7 +14,7 @@ using TriangleUtils::Triangle;
 
 float f = 400.0f;
 float cubeSize = 1.f;
-float offset = cubeSize + 0.3f;
+float offset = cubeSize + 0.1f;
 float ox = 0.f;
 float oy = 0.f;
 float oz = 10.f;
@@ -26,6 +26,11 @@ bool zooming = false;
 
 std::vector<Cube> rubixCube;
 std::vector<TriangleUtils::Triangle> triangles;
+
+Cube& getCube(int x, int y, int z) {
+    int idx = (x - 1) * 9 + (y - 1) * 3 + z - 1;
+    return rubixCube[idx];
+}
 
 void createCubes() {
     for(int x = -1; x <= 1; x++) {
@@ -61,6 +66,103 @@ void drawCubes(sf::RenderWindow& window) {
     });
     for(auto& triangle : triangles) {
         drawTriangle(window, triangle, camX, camY, camZ, f);
+    }
+}
+
+//just rotates a face
+void rotateFaceX(int x) {
+    auto& centerCube = getCube(x, 2, 2);
+    auto centerVertex = centerCube.getCubeCenter();
+    float fcx = centerVertex.x;
+    float fcy = centerVertex.y;
+    float fcz = centerVertex.z;
+
+    //i need to rotate around any arbitrary axis now
+    
+    //axis vector
+    auto& firstCube = getCube(1, 2, 2);
+    auto& lastCube = getCube(3, 2, 2);
+    auto firstVertex = firstCube.getCubeCenter();
+    auto lastVertex = lastCube.getCubeCenter();
+    auto fcx0 = firstVertex.x;
+    auto fcy0 = firstVertex.y;
+    auto fcz0 = firstVertex.z;
+    float fcx1 = lastVertex.x;
+    float fcy1 = lastVertex.y;
+    float fcz1 = lastVertex.z;
+    float dx = fcx1 - fcx0;
+    float dy = fcy1 - fcy0;
+    float dz = fcz1 - fcz0;
+
+    for(int y = 1; y <= 3; y++) {
+        for(int z = 1; z <= 3; z++) {
+            auto& currentCube = getCube(x, y, z);
+            currentCube.rotateAxis(1, rotationSpeed, fcx, fcy, fcz, dx, dy, dz);
+        }
+    }
+}
+
+void rotateFaceY(int y) {
+    auto& centerCube = getCube(2, y, 2);
+    auto centerVertex = centerCube.getCubeCenter();
+    float fcx = centerVertex.x;
+    float fcy = centerVertex.y;
+    float fcz = centerVertex.z;
+
+    //i need to rotate around any arbitrary axis now
+    
+    //axis vector
+    auto& firstCube = getCube(2, 1, 2);
+    auto& lastCube = getCube(2, 3, 2);
+    auto firstVertex = firstCube.getCubeCenter();
+    auto lastVertex = lastCube.getCubeCenter();
+    auto fcx0 = firstVertex.x;
+    auto fcy0 = firstVertex.y;
+    auto fcz0 = firstVertex.z;
+    float fcx1 = lastVertex.x;
+    float fcy1 = lastVertex.y;
+    float fcz1 = lastVertex.z;
+    float dx = fcx1 - fcx0;
+    float dy = fcy1 - fcy0;
+    float dz = fcz1 - fcz0;
+
+    for(int x = 1; x <= 3; x++) {
+        for(int z = 1; z <= 3; z++) {
+            auto& currentCube = getCube(x, y, z);
+            currentCube.rotateAxis(1, rotationSpeed, fcx, fcy, fcz, dx, dy, dz);
+        }
+    }
+}
+
+void rotateFaceZ(int z) {
+    auto& centerCube = getCube(2, 2, z);
+    auto centerVertex = centerCube.getCubeCenter();
+    float fcx = centerVertex.x;
+    float fcy = centerVertex.y;
+    float fcz = centerVertex.z;
+
+    //i need to rotate around any arbitrary axis now
+    
+    //axis vector
+    auto& firstCube = getCube(2, 2, 1);
+    auto& lastCube = getCube(2, 2, 3);
+    auto firstVertex = firstCube.getCubeCenter();
+    auto lastVertex = lastCube.getCubeCenter();
+    auto fcx0 = firstVertex.x;
+    auto fcy0 = firstVertex.y;
+    auto fcz0 = firstVertex.z;
+    float fcx1 = lastVertex.x;
+    float fcy1 = lastVertex.y;
+    float fcz1 = lastVertex.z;
+    float dx = fcx1 - fcx0;
+    float dy = fcy1 - fcy0;
+    float dz = fcz1 - fcz0;
+
+    for(int y = 1; y <= 3; y++) {
+        for(int x = 1; x <= 3; x++) {
+            auto& currentCube = getCube(x, y, z);
+            currentCube.rotateAxis(1, rotationSpeed, fcx, fcy, fcz, dx, dy, dz);
+        }
     }
 }
 
@@ -157,6 +259,24 @@ int main() {
         } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num2)) {
             for(auto& cube : rubixCube) f -= 1.f;
             zooming = true;
+        } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Numpad1)) {
+            rotateFaceX(1);
+        } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Numpad2)) {
+            rotateFaceX(2);
+        } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Numpad3)) {
+            rotateFaceX(3);
+        } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Numpad4)) {
+            rotateFaceY(1);
+        } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Numpad5)) {
+            rotateFaceY(2);
+        } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Numpad6)) {
+            rotateFaceY(3);
+        } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Numpad7)) {
+            rotateFaceZ(1);
+        } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Numpad8)) {
+            rotateFaceZ(2);
+        } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Numpad9)) {
+            rotateFaceZ(3);
         }
 
         if(rotating) {

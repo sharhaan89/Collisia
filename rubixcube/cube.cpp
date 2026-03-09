@@ -3,6 +3,7 @@
 #pragma comment(lib, "winmm.lib")
 
 using TriangleUtils::Triangle;
+using TriangleUtils::Vertex;
 
 #include <cmath>
 #include <utility>
@@ -33,6 +34,10 @@ void Cube::setCubeCenter(float x, float y, float z) {
     cx = x;
     cy = y;
     cz = z;
+}
+
+Vertex Cube::getCubeCenter() {
+    return Vertex{cx, cy, cz};
 }
 
 void Cube::setCubeColor(char color) {
@@ -114,6 +119,11 @@ void Cube::rotateX(float dir, float rotation, float ox, float oy, float oz) {
         triangles[i].v3.y = y * cos(angle) - z * sin(angle) + oy;
         triangles[i].v3.z = y * sin(angle) + z * cos(angle) + oz;
     }
+
+    y = cy - oy;
+    z = cz - oz;
+    cy = y * cos(angle) - z * sin(angle) + oy;
+    cz = y * sin(angle) + z * cos(angle) + oz;
 }
 
 void Cube::rotateY(float dir, float rotation, float ox, float oy, float oz) {
@@ -139,6 +149,11 @@ void Cube::rotateY(float dir, float rotation, float ox, float oy, float oz) {
         triangles[i].v3.x = x * cos(angle) + z * sin(angle) + ox;
         triangles[i].v3.z = -x * sin(angle) + z * cos(angle) + oz;
     }
+
+    x = cx - ox;
+    z = cz - oz;
+    cx = x * cos(angle) + z * sin(angle) + ox;
+    cz = -x * sin(angle) + z * cos(angle) + oz;
 }
 
 void Cube::rotateZ(float dir, float rotation, float ox, float oy, float oz) {
@@ -164,4 +179,46 @@ void Cube::rotateZ(float dir, float rotation, float ox, float oy, float oz) {
         triangles[i].v3.x = x * cos(angle) - y * sin(angle) + ox;
         triangles[i].v3.y = x * sin(angle) + y * cos(angle) + oy;
     }
+
+    x = cx - ox;
+    y = cy - oy;
+    cx = x * cos(angle) - y * sin(angle) + ox;
+    cy = x * sin(angle) + y * cos(angle) + oy;
+}
+
+void Cube::rotateAxis(float dir, float rotation, float ox, float oy, float oz, float axisX, float axisY, float axisZ) {
+    float angle = (3.14159f / 180.f) * rotation * dir;
+
+    float len = sqrt(axisX * axisX + axisY * axisY + axisZ * axisZ);
+    if(len < 1e-6f) return;
+    float ux = axisX / len;
+    float uy = axisY / len;
+    float uz = axisZ / len;
+
+    float cosA = cos(angle);
+    float sinA = sin(angle);
+
+    auto rotatePoint = [&](float& px, float& py, float& pz) {
+        float x = px - ox;
+        float y = py - oy;
+        float z = pz - oz;
+
+        float dot = ux*x + uy*y + uz*z;
+
+        float crossX = uy*z - uz*y;
+        float crossY = uz*x - ux*z;
+        float crossZ = ux*y - uy*x;
+
+        px = x * cosA + crossX * sinA + ux * dot * (1.f - cosA) + ox;
+        py = y * cosA + crossY * sinA + uy * dot * (1.f - cosA) + oy;
+        pz = z * cosA + crossZ * sinA + uz * dot * (1.f - cosA) + oz;
+    };
+
+    for(int i = 0; i < 12; i++) {
+        rotatePoint(triangles[i].v1.x, triangles[i].v1.y, triangles[i].v1.z);
+        rotatePoint(triangles[i].v2.x, triangles[i].v2.y, triangles[i].v2.z);
+        rotatePoint(triangles[i].v3.x, triangles[i].v3.y, triangles[i].v3.z);
+    }
+
+    rotatePoint(cx, cy, cz);
 }

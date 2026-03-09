@@ -33,10 +33,12 @@ float getFocalLength();
 std::vector<TriangleUtils::Triangle> getTriangles();
 void setCamera(float, float, float);
 void setCubeCenter(float, float, float);
+TriangleUtils::Vertex getCubeCenter();
 void addVertices();
 void rotateX(float, float, float, float, float);
 void rotateY(float, float, float, float, float);
 void rotateZ(float, float, float, float, float);
+void rotateAxis(float, float, float, float, float, float, float, float);
 };
 
 
