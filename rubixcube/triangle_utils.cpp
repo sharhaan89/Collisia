@@ -64,7 +64,7 @@ void drawTriangle(sf::RenderWindow& window, Triangle& tr, float camX, float camY
     triangle.setPoint(2, sf::Vector2f(p3.x, p3.y));
     triangle.setFillColor(getColor(tr.color));
     triangle.setOutlineThickness(1.f);
-    triangle.setOutlineColor(sf::Color::Cyan);
+    triangle.setOutlineColor(sf::Color::Black);
 
     window.draw(triangle);   
 }

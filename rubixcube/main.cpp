@@ -27,6 +27,27 @@ bool zooming = false;
 std::vector<Cube> rubixCube;
 std::vector<TriangleUtils::Triangle> triangles;
 
+void createCubes() {
+    for(int x = -1; x <= 1; x++) {
+        for(int y = -1; y <= 1; y++) {
+            for(int z = -1; z <= 1; z++) {
+                float cx = x * offset + ox;
+                float cy = y * offset + oy;
+                float cz = z * offset + oz;
+
+                Cube cube(cubeSize, cx, cy, cz, 'R');
+                if(x == 0) cube.setCubeColor('G');
+                if(x == 1) cube.setCubeColor('B');
+                cube.setCamera(camX, camY, camZ);
+                cube.setFocalLength(f);
+                cube.addVertices();
+
+                rubixCube.push_back(cube);
+            }
+        }
+    }
+}
+
 //painters for all
 void drawCubes(sf::RenderWindow& window) {
     triangles.clear();
@@ -47,23 +68,7 @@ int main() {
     sf::RenderWindow window(sf::VideoMode({WINDOW_WIDTH, WINDOW_HEIGHT}), "3D CUBE!", sf::Style::Titlebar | sf::Style::Close);
     window.setFramerateLimit(FPS);
     
-    //create the cubes
-    for(int x = -1; x <= 1; x++) {
-        for(int y = -1; y <= 1; y++) {
-            for(int z = -1; z <= 1; z++) {
-                float cx = x * offset + ox;
-                float cy = y * offset + oy;
-                float cz = z * offset + oz;
-
-                Cube cube(cubeSize, cx, cy, cz, 'R');
-                cube.setCamera(camX, camY, camZ);
-                cube.setFocalLength(f);
-                cube.addVertices();
-
-                rubixCube.push_back(cube);
-            }
-        }
-    }
+    createCubes();
 
     sf::Texture backgroundTexture;
     backgroundTexture.loadFromFile("background.png");
