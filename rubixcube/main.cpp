@@ -3,6 +3,7 @@
 #include <SFML/Audio.hpp>
 #include <vector>
 #include <algorithm>
+#include <random>
 #include <cmath>
 
 #define FPS 60
@@ -96,6 +97,13 @@ void resetCube() {
     rotatingAxis = -1;
     rotatingLayer = -1;
     steps = 6;
+}
+
+void rotateFace(int axis, int layer) {
+    rotatingFace = true;
+    rotatingDone = 0.f;
+    rotatingAxis = axis;
+    rotatingLayer = layer;
 }
 
 //just rotates a face
@@ -223,6 +231,29 @@ void rotateLogicallyZ(int z) {
     }
 }
 
+void scrambleCube(int scramblingFactor) {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> distrib(0, 2);
+
+    for(int i = 0; i < scramblingFactor * 100; i++) {
+        int randomAxis = distrib(gen);
+        int randomLayer = distrib(gen);
+        if(randomAxis == 0) {
+            rotateFaceX(randomLayer, 90);
+            rotateLogicallyX(randomLayer);
+        }
+        else if(randomAxis == 1) {
+            rotateFaceY(randomLayer, 90);
+            rotateLogicallyY(randomLayer);
+        }
+        else if(randomAxis == 2) {
+            rotateFaceZ(randomLayer, 90);
+            rotateLogicallyZ(randomLayer);
+        }
+    }
+}
+
 int main() {
     sf::RenderWindow window(sf::VideoMode({WINDOW_WIDTH, WINDOW_HEIGHT}), "3D RUBIX CUBE!", sf::Style::Titlebar | sf::Style::Close);
     window.setFramerateLimit(FPS);
@@ -294,72 +325,42 @@ int main() {
             if(const auto* key = event->getIf<sf::Event::KeyPressed>()) {
                 if(!rotatingFace) {
                 if(key->code == sf::Keyboard::Key::Numpad1) {
-                    rotatingFace = true;
-                    rotatingDone = 0.f;
-                    rotatingAxis = 0;
-                    rotatingLayer = 0;
-      
+                    rotateFace(0, 0);
                 }
                 else if(key->code == sf::Keyboard::Key::Numpad2) {
-                    rotatingFace = true;
-                    rotatingDone = 0.f;
-                    rotatingAxis = 0;
-                    rotatingLayer = 1;
-                 
+                    rotateFace(0, 1);
                 }
                 else if(key->code == sf::Keyboard::Key::Numpad3) {
-                    rotatingFace = true;
-                    rotatingDone = 0.f;
-                    rotatingAxis = 0;
-                    rotatingLayer = 2;
-                  
+                    rotateFace(0, 2);
                 }
                 else if(key->code == sf::Keyboard::Key::Numpad4) {
-                    rotatingFace = true;
-                    rotatingDone = 0.f;
-                    rotatingAxis = 1;
-                    rotatingLayer = 0;
-               
+                    rotateFace(1, 0);
                 }
                 else if(key->code == sf::Keyboard::Key::Numpad5) {
-                    rotatingFace = true;
-                    rotatingDone = 0.f;
-                    rotatingAxis = 1;
-                    rotatingLayer = 1;
-                   
+                    rotateFace(1, 1);
                 }
                 else if(key->code == sf::Keyboard::Key::Numpad6) {
-                    rotatingFace = true;
-                    rotatingDone = 0.f;
-                    rotatingAxis = 1;
-                    rotatingLayer = 2;
-                   
+                    rotateFace(1, 2);
                 }
                 else if(key->code == sf::Keyboard::Key::Numpad7) {
-                    rotatingFace = true;
-                    rotatingDone = 0.f;
-                    rotatingAxis = 2;
-                    rotatingLayer = 0;
-                   
+                    rotateFace(2, 0);
                 }
                 else if(key->code == sf::Keyboard::Key::Numpad8) {
-                    rotatingFace = true;
-                    rotatingDone = 0.f;
-                    rotatingAxis = 2;
-                    rotatingLayer = 1;
-                  
+                    rotateFace(2, 1);
                 }
                 else if(key->code == sf::Keyboard::Key::Numpad9) {
-                    rotatingFace = true;
-                    rotatingDone = 0.f;
-                    rotatingAxis = 2;
-                    rotatingLayer = 2;
-                 
+                    rotateFace(2, 2);
                 }
                 }
                 
                 if(key->code == sf::Keyboard::Key::R) {
                     resetCube();
+                } else if(key->code == sf::Keyboard::Key::T) {
+                    scrambleCube(1);
+                } else if(key->code == sf::Keyboard::Key::Y) {
+                    scrambleCube(50);
+                } else if(key->code == sf::Keyboard::Key::U) {
+                    scrambleCube(100);
                 }
             }
         }

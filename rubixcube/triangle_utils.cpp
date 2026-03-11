@@ -86,9 +86,9 @@ void drawTriangle(sf::RenderWindow& window, Triangle& tr, float camX, float camY
     line3[1].position = sf::Vector2f(p1.x, p1.y);
     line3[1].color = sf::Color::Black;
 
-    window.draw(line1, 2, sf::PrimitiveType::Lines);
-    window.draw(line2, 2, sf::PrimitiveType::Lines);
-    window.draw(line3, 2, sf::PrimitiveType::Lines);
+    // window.draw(line1, 2, sf::PrimitiveType::Lines);
+    // window.draw(line2, 2, sf::PrimitiveType::Lines);
+    // window.draw(line3, 2, sf::PrimitiveType::Lines);
 }
 
 }
