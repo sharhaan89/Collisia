@@ -1,5 +1,5 @@
 <h1>RUBIX CUBE</h1>
-<img width="702" height="728" alt="image" src="https://github.com/user-attachments/assets/3e6d34a5-01e7-438c-95e8-760e764c45dc" />
+<img width="706" height="736" alt="image" src="https://github.com/user-attachments/assets/5a9dcbb4-f7f1-4146-9eeb-a24a340af153" />
 
 <h1>3D CUBE</h1>
 <img width="695" height="725" alt="image" src="https://github.com/user-attachments/assets/947f972e-d511-4a12-bdc5-3c6f9d18ad12" />

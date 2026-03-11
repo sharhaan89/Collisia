@@ -224,7 +224,7 @@ void rotateLogicallyZ(int z) {
 }
 
 int main() {
-    sf::RenderWindow window(sf::VideoMode({WINDOW_WIDTH, WINDOW_HEIGHT}), "3D CUBE!", sf::Style::Titlebar | sf::Style::Close);
+    sf::RenderWindow window(sf::VideoMode({WINDOW_WIDTH, WINDOW_HEIGHT}), "3D RUBIX CUBE!", sf::Style::Titlebar | sf::Style::Close);
     window.setFramerateLimit(FPS);
     
     createCubes();
