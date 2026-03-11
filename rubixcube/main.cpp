@@ -42,13 +42,25 @@ void createCubes() {
                 float cy = y * offset + oy;
                 float cz = z * offset + oz;
 
-                Cube cube(cubeSize, cx, cy, cz, 'R');
-                if(x == 0) cube.setCubeColor('G');
-                if(x == 1) cube.setCubeColor('B');
+                Cube cube(cubeSize, cx, cy, cz);
                 cube.setCamera(camX, camY, camZ);
                 cube.setFocalLength(f);
-                cube.addVertices();
 
+                cube.colorRight = 'S';
+                cube.colorLeft = 'S';
+                cube.colorTop = 'S';
+                cube.colorBottom = 'S';
+                cube.colorFront = 'S';
+                cube.colorBack = 'S';
+
+                if(x == 1) cube.colorRight = 'R';
+                if(x == -1) cube.colorLeft = 'M';
+                if(y == 1) cube.colorTop = 'W';
+                if(y == -1) cube.colorBottom = 'Y';
+                if(z == -1) cube.colorFront = 'G';
+                if(z == 1) cube.colorBack = 'B';
+
+                cube.addVertices();
                 rubixCube[x + 1][y + 1][z + 1] = cube;
             }
         }
@@ -117,8 +129,6 @@ void rotateFaceX(int x, float rotationAmount) {
             currentCube.rotateAxis(1, rotationAmount, fcx, fcy, fcz, dx, dy, dz);
         }
     }
-
-
 }
 
 void rotateFaceY(int y, float rotationAmount) {
@@ -145,7 +155,6 @@ void rotateFaceY(int y, float rotationAmount) {
             currentCube.rotateAxis(1, rotationAmount, fcx, fcy, fcz, dx, dy, dz);
         }
     }
-
 }
 
 void rotateFaceZ(int z, float rotationAmount) {
@@ -173,7 +182,6 @@ void rotateFaceZ(int z, float rotationAmount) {
             currentCube.rotateAxis(1, rotationAmount, fcx, fcy, fcz, dx, dy, dz);
         }
     }
-    
 }
 
 void rotateLogicallyX(int x) {
@@ -431,23 +439,23 @@ int main() {
             zooming = true;
         } 
 
-        // if(rotating) {
-        //     if(rotationSound.getStatus() != sf::Sound::Status::Playing)
-        //         rotationSound.play();
-        // } else {
-        //     if(rotationSound.getStatus() == sf::Sound::Status::Playing)
-        //         rotationSound.stop();
-        // }
+        if(rotatingFace) {
+            if(rotationSound.getStatus() != sf::Sound::Status::Playing)
+                rotationSound.play();
+        } else {
+            if(rotationSound.getStatus() == sf::Sound::Status::Playing)
+                rotationSound.stop();
+        }
 
-        // if(zooming) {
-        //     if(zoomSound.getStatus() != sf::Sound::Status::Playing) {
-        //         zoomSound.play();
-        //     }
-        // } else {
-        //     if(zoomSound.getStatus() == sf::Sound::Status::Playing) {
-        //         zoomSound.stop();
-        //     }
-        // }
+        if(zooming) {
+            if(zoomSound.getStatus() != sf::Sound::Status::Playing) {
+                zoomSound.play();
+            }
+        } else {
+            if(zoomSound.getStatus() == sf::Sound::Status::Playing) {
+                zoomSound.stop();
+            }
+        }
 
         window.clear();
         // focalInfo.setString("Focal length: " + std::to_string((int)f));

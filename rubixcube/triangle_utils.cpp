@@ -30,13 +30,14 @@ std::pair<bool, Point> transformVertex(Vertex& vertex, float camX, float camY, f
 sf::Color getColor(char color) {
     sf::Color resColor;
     switch(color) {
+        case 'W': resColor = sf::Color::White; break;
+        case 'G': resColor = sf::Color::Green; break;
         case 'R': resColor = sf::Color::Red; break;
         case 'B': resColor = sf::Color::Blue; break;
-        case 'G': resColor = sf::Color::Green; break;
+        case 'M': resColor = sf::Color::Magenta; break;
         case 'Y': resColor = sf::Color::Yellow; break;
         case 'C': resColor = sf::Color::Cyan; break;
-        case 'M': resColor = sf::Color::Magenta; break;
-        default: resColor = sf::Color::White;
+        default: resColor = sf::Color::Black;
     }
     return resColor;
 }

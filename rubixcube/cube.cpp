@@ -12,12 +12,24 @@ using TriangleUtils::Vertex;
 #include <windows.h>
 #include <mmsystem.h>
 
-Cube::Cube(float cubeSize, float cx, float cy, float cz, char cubeColor) {
+Cube::Cube(float cubeSize, float cx, float cy, float cz) {
     this->cubeSize = cubeSize;
     this->cx = cx;
     this->cy = cy;
     this->cz = cz;
-    this->cubeColor = cubeColor;
+}
+
+Cube::Cube(float cubeSize, float cx, float cy, float cz, char colorFront, char colorBack, char colorLeft, char colorRight, char colorTop, char colorBottom) {
+    this->cubeSize = cubeSize;
+    this->cx = cx;
+    this->cy = cy;
+    this->cz = cz;
+    this->colorFront = colorFront;
+    this->colorBottom = colorBottom;
+    this->colorLeft = colorLeft;
+    this->colorRight = colorRight;
+    this->colorTop = colorTop;
+    this->colorBottom = colorBottom;
 }
 
 void Cube::setCubeSize(float cs) {
@@ -40,8 +52,13 @@ Vertex Cube::getCubeCenter() {
     return Vertex{cx, cy, cz};
 }
 
-void Cube::setCubeColor(char color) {
-    cubeColor = color;
+void Cube::setCubeColor(char colorFront, char colorBack, char colorLeft, char colorRight, char colorTop, char colorBottom) {
+    this->colorFront = colorFront;
+    this->colorBottom = colorBottom;
+    this->colorLeft = colorLeft;
+    this->colorRight = colorRight;
+    this->colorTop = colorTop;
+    this->colorBottom = colorBottom;
 }
 
 void Cube::setFocalLength(float focalLength) {
@@ -66,29 +83,29 @@ void Cube::addVertices() {
     float front = cz - cubeSize * 0.5f;
     float back = cz + cubeSize * 0.5f;
 
-    //Bottom face
-    triangles.push_back(Triangle{{left, top, back}, {right, top, back}, {left, bottom, back}, cubeColor});
-    triangles.push_back(Triangle{{right, top, back}, {right, bottom, back}, {left, bottom, back}, cubeColor});
+    //Back face
+    triangles.push_back(Triangle{{left, top, back}, {right, top, back}, {left, bottom, back}, colorBack});
+    triangles.push_back(Triangle{{right, top, back}, {right, bottom, back}, {left, bottom, back}, colorBack});
 
-    //Left face
-    triangles.push_back(Triangle{{left, top, back}, {left, top, front}, {left, bottom, back}, cubeColor});
-    triangles.push_back(Triangle{{left, top, front}, {left, bottom, front}, {left, bottom, back}, cubeColor});
+    //Left face 
+    triangles.push_back(Triangle{{left, top, back}, {left, top, front}, {left, bottom, back}, colorLeft});
+    triangles.push_back(Triangle{{left, top, front}, {left, bottom, front}, {left, bottom, back}, colorLeft});
 
     //Right face
-    triangles.push_back(Triangle{{right, top, front}, {right, top, back}, {right, bottom, front}, cubeColor});
-    triangles.push_back(Triangle{{right, top, back}, {right, bottom, back}, {right, bottom, front}, cubeColor});
-
-    //Back face
-    triangles.push_back(Triangle{{left, top, back}, {right, top, back}, {left, top, front}, cubeColor});
-    triangles.push_back(Triangle{{right, top, back}, {right, top, front}, {left, top, front}, cubeColor});
-
-    //Front face
-    triangles.push_back(Triangle{{left, bottom, front}, {right, bottom, front}, {left, bottom, back}, cubeColor});
-    triangles.push_back(Triangle{{right, bottom, front}, {right, bottom, back}, {left, bottom, back}, cubeColor});
+    triangles.push_back(Triangle{{right, top, front}, {right, top, back}, {right, bottom, front}, colorRight});
+    triangles.push_back(Triangle{{right, top, back}, {right, bottom, back}, {right, bottom, front}, colorRight});
 
     //Top face
-    triangles.push_back(Triangle{{left, top, front}, {right, top, front}, {left, bottom, front}, cubeColor});
-    triangles.push_back(Triangle{{right, top, front}, {right, bottom, front}, {left, bottom, front}, cubeColor});
+    triangles.push_back(Triangle{{left, top, back}, {right, top, back}, {left, top, front}, colorTop});
+    triangles.push_back(Triangle{{right, top, back}, {right, top, front}, {left, top, front}, colorTop});
+
+    //Bottom face
+    triangles.push_back(Triangle{{left, bottom, front}, {right, bottom, front}, {left, bottom, back}, colorBottom});
+    triangles.push_back(Triangle{{right, bottom, front}, {right, bottom, back}, {left, bottom, back}, colorBottom});
+
+    //Front face
+    triangles.push_back(Triangle{{left, top, front}, {right, top, front}, {left, bottom, front}, colorFront});
+    triangles.push_back(Triangle{{right, top, front}, {right, bottom, front}, {left, bottom, front}, colorFront});
 }
 
 /*

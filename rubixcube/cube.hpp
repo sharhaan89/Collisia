@@ -13,7 +13,6 @@ class Cube {
 private:
     
 float f;
-char cubeColor;
 float cubeSize;
 int x, y, z; //logical coordinates
 float cx, cy, cz; //physical coordinates
@@ -24,11 +23,17 @@ sf::Color getColor(char);
 std::pair<bool, TriangleUtils::Point> transformVertex(TriangleUtils::Vertex&);
 
 public:
-
+char colorFront;
+char colorBack;
+char colorLeft;
+char colorRight;
+char colorTop;
+char colorBottom;
 Cube() {};
-Cube(float, float, float, float, char);
+Cube(float, float, float, float);
+Cube(float, float, float, float, char, char, char, char, char, char);
 void setCubeSize(float);
-void setCubeColor(char);
+void setCubeColor(char, char, char, char, char, char);
 void setFocalLength(float);
 float getFocalLength();
 std::vector<TriangleUtils::Triangle> getTriangles();
