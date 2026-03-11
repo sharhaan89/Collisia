@@ -15,16 +15,17 @@ private:
 float f;
 char cubeColor;
 float cubeSize;
-float cx, cy, cz;
+int x, y, z; //logical coordinates
+float cx, cy, cz; //physical coordinates
 float camX, camY, camZ;
 float angleX, angleY, angleZ;
 std::vector<TriangleUtils::Triangle> triangles;
-
 sf::Color getColor(char);
 std::pair<bool, TriangleUtils::Point> transformVertex(TriangleUtils::Vertex&);
 
 public:
 
+Cube() {};
 Cube(float, float, float, float, char);
 void setCubeSize(float);
 void setCubeColor(char);

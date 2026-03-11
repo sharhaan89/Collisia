@@ -63,10 +63,31 @@ void drawTriangle(sf::RenderWindow& window, Triangle& tr, float camX, float camY
     triangle.setPoint(1, sf::Vector2f(p2.x, p2.y));
     triangle.setPoint(2, sf::Vector2f(p3.x, p3.y));
     triangle.setFillColor(getColor(tr.color));
-    triangle.setOutlineThickness(1.f);
-    triangle.setOutlineColor(sf::Color::Black);
-
+    //triangle.setOutlineThickness(1.f);
+    //triangle.setOutlineColor(sf::Color::Black);
     window.draw(triangle);   
+
+    sf::Vertex line1[2];
+    line1[0].position = sf::Vector2f(p1.x, p1.y);
+    line1[0].color = sf::Color::Black;
+    line1[1].position = sf::Vector2f(p2.x, p2.y);
+    line1[1].color = sf::Color::Black;
+
+    sf::Vertex line2[2];
+    line2[0].position = sf::Vector2f(p2.x, p2.y);
+    line2[0].color = sf::Color::Black;
+    line2[1].position = sf::Vector2f(p3.x, p3.y);
+    line2[1].color = sf::Color::Black;
+
+    sf::Vertex line3[2];
+    line3[0].position = sf::Vector2f(p3.x, p3.y);
+    line3[0].color = sf::Color::Black;
+    line3[1].position = sf::Vector2f(p1.x, p1.y);
+    line3[1].color = sf::Color::Black;
+
+    window.draw(line1, 2, sf::PrimitiveType::Lines);
+    window.draw(line2, 2, sf::PrimitiveType::Lines);
+    window.draw(line3, 2, sf::PrimitiveType::Lines);
 }
 
 }

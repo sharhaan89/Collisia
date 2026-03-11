@@ -21,16 +21,18 @@ float oz = 10.f;
 float camX = 0.f;
 float camY = 0.f;
 float camZ = 0.f;
-bool rotating = false;
+bool rotatingCube = false;
 bool zooming = false;
 
-std::vector<Cube> rubixCube;
-std::vector<TriangleUtils::Triangle> triangles;
+//handle the rotation ka simulation
+bool rotatingFace = false;
+float rotatingDone = 0.f;
+int rotatingAxis = -1;
+int rotatingLayer = -1;
+float steps = 6; //number of degrees to rotate per frame 
 
-Cube& getCube(int x, int y, int z) {
-    int idx = (x - 1) * 9 + (y - 1) * 3 + z - 1;
-    return rubixCube[idx];
-}
+std::vector<TriangleUtils::Triangle> triangles;
+Cube rubixCube[3][3][3];
 
 void createCubes() {
     for(int x = -1; x <= 1; x++) {
@@ -47,7 +49,7 @@ void createCubes() {
                 cube.setFocalLength(f);
                 cube.addVertices();
 
-                rubixCube.push_back(cube);
+                rubixCube[x + 1][y + 1][z + 1] = cube;
             }
         }
     }
@@ -57,9 +59,13 @@ void createCubes() {
 void drawCubes(sf::RenderWindow& window) {
     triangles.clear();
 
-    for(auto& cube : rubixCube) {
-        auto currentTriangles = cube.getTriangles();
-        triangles.insert(triangles.end(), currentTriangles.begin(), currentTriangles.end());
+    for(int i = 0; i < 3; i++) {
+        for(int j = 0; j < 3; j++) {
+            for(int k = 0; k < 3; k++) {
+                auto currentTriangles = rubixCube[i][j][k].getTriangles();
+                triangles.insert(triangles.end(), currentTriangles.begin(), currentTriangles.end());
+            }
+        }
     }
     std::sort(triangles.begin(), triangles.end(), [](Triangle& a, Triangle& b) {
         return getTriangleDepth(a, camZ) > getTriangleDepth(b, camZ);
@@ -70,14 +76,19 @@ void drawCubes(sf::RenderWindow& window) {
 }
 
 void resetCube() {
-    rubixCube.clear();
     triangles.clear();
     createCubes();
+
+    rotatingFace = false;
+    rotatingDone = 0.f;
+    rotatingAxis = -1;
+    rotatingLayer = -1;
+    steps = 6;
 }
 
 //just rotates a face
-void rotateFaceX(int x) {
-    auto& centerCube = getCube(x, 2, 2);
+void rotateFaceX(int x, float rotationAmount) {
+    auto& centerCube = rubixCube[x][1][1];
     auto centerVertex = centerCube.getCubeCenter();
     float fcx = centerVertex.x;
     float fcy = centerVertex.y;
@@ -86,8 +97,8 @@ void rotateFaceX(int x) {
     //i need to rotate around any arbitrary axis now
     
     //axis vector
-    auto& firstCube = getCube(1, 2, 2);
-    auto& lastCube = getCube(3, 2, 2);
+    auto& firstCube = rubixCube[0][1][1];
+    auto& lastCube = rubixCube[2][1][1];
     auto firstVertex = firstCube.getCubeCenter();
     auto lastVertex = lastCube.getCubeCenter();
     auto fcx0 = firstVertex.x;
@@ -100,75 +111,107 @@ void rotateFaceX(int x) {
     float dy = fcy1 - fcy0;
     float dz = fcz1 - fcz0;
 
-    for(int y = 1; y <= 3; y++) {
-        for(int z = 1; z <= 3; z++) {
-            auto& currentCube = getCube(x, y, z);
-            currentCube.rotateAxis(1, rotationSpeed, fcx, fcy, fcz, dx, dy, dz);
+    for(int y = 0; y < 3; y++) {
+        for(int z = 0; z < 3; z++) {
+            auto& currentCube = rubixCube[x][y][z];
+            currentCube.rotateAxis(1, rotationAmount, fcx, fcy, fcz, dx, dy, dz);
         }
+    }
+
+
+}
+
+void rotateFaceY(int y, float rotationAmount) {
+    auto& centerCube = rubixCube[1][y][1];
+    auto centerVertex = centerCube.getCubeCenter();
+    float fcx = centerVertex.x;
+    float fcy = centerVertex.y;
+    float fcz = centerVertex.z;
+
+    // axis vector
+    auto& firstCube = rubixCube[1][0][1];
+    auto& lastCube  = rubixCube[1][2][1];
+
+    auto firstVertex = firstCube.getCubeCenter();
+    auto lastVertex  = lastCube.getCubeCenter();
+
+    float dx = lastVertex.x - firstVertex.x;
+    float dy = lastVertex.y - firstVertex.y;
+    float dz = lastVertex.z - firstVertex.z;
+
+    for(int x = 0; x < 3; x++) {
+        for(int z = 0; z < 3; z++) {
+            auto& currentCube = rubixCube[x][y][z];
+            currentCube.rotateAxis(1, rotationAmount, fcx, fcy, fcz, dx, dy, dz);
+        }
+    }
+
+}
+
+void rotateFaceZ(int z, float rotationAmount) {
+    auto& centerCube = rubixCube[1][1][z];
+    auto centerVertex = centerCube.getCubeCenter();
+    
+    float fcx = centerVertex.x;
+    float fcy = centerVertex.y;
+    float fcz = centerVertex.z;
+    
+    // axis vector
+    auto& firstCube = rubixCube[1][1][0];
+    auto& lastCube  = rubixCube[1][1][2];
+    
+    auto firstVertex = firstCube.getCubeCenter();
+    auto lastVertex  = lastCube.getCubeCenter();
+    
+    float dx = lastVertex.x - firstVertex.x;
+    float dy = lastVertex.y - firstVertex.y;
+    float dz = lastVertex.z - firstVertex.z;
+    
+    for(int x = 0; x < 3; x++) {
+        for(int y = 0; y < 3; y++) {
+            auto& currentCube = rubixCube[x][y][z];
+            currentCube.rotateAxis(1, rotationAmount, fcx, fcy, fcz, dx, dy, dz);
+        }
+    }
+    
+}
+
+void rotateLogicallyX(int x) {
+    //anti-clockwise rotation
+    for(int y = 0; y < 3; y++) {
+        for(int z = y + 1; z < 3; z++) {
+            std::swap(rubixCube[x][y][z], rubixCube[x][z][y]);
+        }
+    }
+    
+    for(int z = 0; z < 3; z++) {
+        std::swap(rubixCube[x][0][z], rubixCube[x][2][z]);
     }
 }
 
-void rotateFaceY(int y) {
-    auto& centerCube = getCube(2, y, 2);
-    auto centerVertex = centerCube.getCubeCenter();
-    float fcx = centerVertex.x;
-    float fcy = centerVertex.y;
-    float fcz = centerVertex.z;
-
-    //i need to rotate around any arbitrary axis now
-    
-    //axis vector
-    auto& firstCube = getCube(2, 1, 2);
-    auto& lastCube = getCube(2, 3, 2);
-    auto firstVertex = firstCube.getCubeCenter();
-    auto lastVertex = lastCube.getCubeCenter();
-    auto fcx0 = firstVertex.x;
-    auto fcy0 = firstVertex.y;
-    auto fcz0 = firstVertex.z;
-    float fcx1 = lastVertex.x;
-    float fcy1 = lastVertex.y;
-    float fcz1 = lastVertex.z;
-    float dx = fcx1 - fcx0;
-    float dy = fcy1 - fcy0;
-    float dz = fcz1 - fcz0;
-
-    for(int x = 1; x <= 3; x++) {
-        for(int z = 1; z <= 3; z++) {
-            auto& currentCube = getCube(x, y, z);
-            currentCube.rotateAxis(1, rotationSpeed, fcx, fcy, fcz, dx, dy, dz);
+void rotateLogicallyY(int y) {
+    //clockwise rotation
+    for(int x = 0; x < 3; x++) {
+        for(int z = x + 1; z < 3; z++) {
+            std::swap(rubixCube[x][y][z], rubixCube[z][y][x]);
         }
+    }
+    
+    for(int x = 0; x < 3; x++) {
+        std::swap(rubixCube[x][y][0], rubixCube[x][y][2]);
     }
 }
 
-void rotateFaceZ(int z) {
-    auto& centerCube = getCube(2, 2, z);
-    auto centerVertex = centerCube.getCubeCenter();
-    float fcx = centerVertex.x;
-    float fcy = centerVertex.y;
-    float fcz = centerVertex.z;
-
-    //i need to rotate around any arbitrary axis now
-    
-    //axis vector
-    auto& firstCube = getCube(2, 2, 1);
-    auto& lastCube = getCube(2, 2, 3);
-    auto firstVertex = firstCube.getCubeCenter();
-    auto lastVertex = lastCube.getCubeCenter();
-    auto fcx0 = firstVertex.x;
-    auto fcy0 = firstVertex.y;
-    auto fcz0 = firstVertex.z;
-    float fcx1 = lastVertex.x;
-    float fcy1 = lastVertex.y;
-    float fcz1 = lastVertex.z;
-    float dx = fcx1 - fcx0;
-    float dy = fcy1 - fcy0;
-    float dz = fcz1 - fcz0;
-
-    for(int y = 1; y <= 3; y++) {
-        for(int x = 1; x <= 3; x++) {
-            auto& currentCube = getCube(x, y, z);
-            currentCube.rotateAxis(1, rotationSpeed, fcx, fcy, fcz, dx, dy, dz);
+void rotateLogicallyZ(int z) {
+    //anti-clockwise rotation
+    for(int x = 0; x < 3; x++) {
+        for(int y = x + 1; y < 3; y++) {
+            std::swap(rubixCube[x][y][z], rubixCube[y][x][z]);
         }
+    }
+    
+    for(int y = 0; y < 3; y++) {
+        std::swap(rubixCube[0][y][z], rubixCube[2][y][z]);
     }
 }
 
@@ -177,7 +220,7 @@ int main() {
     window.setFramerateLimit(FPS);
     
     createCubes();
-
+    
     sf::Texture backgroundTexture;
     backgroundTexture.loadFromFile("background.png");
     sf::Sprite backgroundSprite(backgroundTexture);
@@ -232,78 +275,179 @@ int main() {
     angleZInfo.setPosition({WINDOW_WIDTH - bounds.size.x - margin, 100});
 
     while(window.isOpen()) {
+        rotatingCube = false;
+        zooming = false;
+
         while(const std::optional event = window.pollEvent()) {
             if(event->is<sf::Event::Closed>()) {
                 window.close();
             }
-        }
 
-        rotating = false;
-        zooming = false;
-
-        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::R)) {
-            resetCube();
-        } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
-            for(auto& cube : rubixCube) cube.rotateY(1, rotationSpeed, ox, oy, oz);
-            rotating = true;
-        } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
-            for(auto& cube : rubixCube) cube.rotateY(-1, rotationSpeed, ox, oy, oz);
-            rotating = true;
-        } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W)) {
-            for(auto& cube : rubixCube) cube.rotateX(1, rotationSpeed, ox, oy, oz);
-            rotating = true;
-        } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)) {
-            for(auto& cube : rubixCube) cube.rotateX(-1, rotationSpeed, ox, oy, oz);
-            rotating = true;
-        } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Q)) {
-            for(auto& cube : rubixCube) cube.rotateZ(1, rotationSpeed, ox, oy, oz);
-            rotating = true;
-        } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::E)) {
-            for(auto& cube : rubixCube) cube.rotateZ(-1, rotationSpeed, ox, oy, oz);
-            rotating = true;
-        } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num1)) {
-            for(auto& cube : rubixCube) f += 1.f;
-            zooming = true;
-        } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num2)) {
-            for(auto& cube : rubixCube) f -= 1.f;
-            zooming = true;
-        } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Numpad1)) {
-            rotateFaceX(1);
-        } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Numpad2)) {
-            rotateFaceX(2);
-        } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Numpad3)) {
-            rotateFaceX(3);
-        } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Numpad4)) {
-            rotateFaceY(1);
-        } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Numpad5)) {
-            rotateFaceY(2);
-        } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Numpad6)) {
-            rotateFaceY(3);
-        } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Numpad7)) {
-            rotateFaceZ(1);
-        } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Numpad8)) {
-            rotateFaceZ(2);
-        } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Numpad9)) {
-            rotateFaceZ(3);
-        }
-
-        if(rotating) {
-            if(rotationSound.getStatus() != sf::Sound::Status::Playing)
-                rotationSound.play();
-        } else {
-            if(rotationSound.getStatus() == sf::Sound::Status::Playing)
-                rotationSound.stop();
-        }
-
-        if(zooming) {
-            if(zoomSound.getStatus() != sf::Sound::Status::Playing) {
-                zoomSound.play();
+            if(const auto* key = event->getIf<sf::Event::KeyPressed>()) {
+                if(!rotatingFace) {
+                if(key->code == sf::Keyboard::Key::Numpad1) {
+                    rotatingFace = true;
+                    rotatingDone = 0.f;
+                    rotatingAxis = 0;
+                    rotatingLayer = 0;
+      
+                }
+                else if(key->code == sf::Keyboard::Key::Numpad2) {
+                    rotatingFace = true;
+                    rotatingDone = 0.f;
+                    rotatingAxis = 0;
+                    rotatingLayer = 1;
+                 
+                }
+                else if(key->code == sf::Keyboard::Key::Numpad3) {
+                    rotatingFace = true;
+                    rotatingDone = 0.f;
+                    rotatingAxis = 0;
+                    rotatingLayer = 2;
+                  
+                }
+                else if(key->code == sf::Keyboard::Key::Numpad4) {
+                    rotatingFace = true;
+                    rotatingDone = 0.f;
+                    rotatingAxis = 1;
+                    rotatingLayer = 0;
+               
+                }
+                else if(key->code == sf::Keyboard::Key::Numpad5) {
+                    rotatingFace = true;
+                    rotatingDone = 0.f;
+                    rotatingAxis = 1;
+                    rotatingLayer = 1;
+                   
+                }
+                else if(key->code == sf::Keyboard::Key::Numpad6) {
+                    rotatingFace = true;
+                    rotatingDone = 0.f;
+                    rotatingAxis = 1;
+                    rotatingLayer = 2;
+                   
+                }
+                else if(key->code == sf::Keyboard::Key::Numpad7) {
+                    rotatingFace = true;
+                    rotatingDone = 0.f;
+                    rotatingAxis = 2;
+                    rotatingLayer = 0;
+                   
+                }
+                else if(key->code == sf::Keyboard::Key::Numpad8) {
+                    rotatingFace = true;
+                    rotatingDone = 0.f;
+                    rotatingAxis = 2;
+                    rotatingLayer = 1;
+                  
+                }
+                else if(key->code == sf::Keyboard::Key::Numpad9) {
+                    rotatingFace = true;
+                    rotatingDone = 0.f;
+                    rotatingAxis = 2;
+                    rotatingLayer = 2;
+                 
+                }
+                }
+                
+                if(key->code == sf::Keyboard::Key::R) {
+                    resetCube();
+                }
             }
-        } else {
-            if(zoomSound.getStatus() == sf::Sound::Status::Playing) {
-                zoomSound.stop();
+        }
+
+        if(rotatingFace && rotatingDone < 90) {
+            if(rotatingAxis == 0) {
+                rotateFaceX(rotatingLayer, steps);
+                rotatingDone += steps;
+            } else if(rotatingAxis == 1) {
+                rotateFaceY(rotatingLayer, steps);
+                rotatingDone += steps;
+            } else if(rotatingAxis == 2) {
+                rotateFaceZ(rotatingLayer, steps);
+                rotatingDone += steps;
             }
         }
+
+        if(rotatingDone >= 90) {
+            if(rotatingAxis == 0) rotateLogicallyX(rotatingLayer);
+            else if(rotatingAxis == 1) rotateLogicallyY(rotatingLayer);
+            else if(rotatingAxis == 2) rotateLogicallyZ(rotatingLayer);
+            rotatingFace = false;
+            rotatingDone = 0.f;
+            rotatingAxis = -1;
+            rotatingLayer = -1;
+            
+        }
+        
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
+            for(int x = 0; x < 3; x++)
+                for(int y = 0; y < 3; y++)
+                    for(int z = 0; z < 3; z++)
+                        rubixCube[x][y][z].rotateY(1, rotationSpeed, ox, oy, oz);
+            rotatingCube = true;
+        }
+        else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
+            for(int x = 0; x < 3; x++)
+                for(int y = 0; y < 3; y++)
+                    for(int z = 0; z < 3; z++)
+                        rubixCube[x][y][z].rotateY(-1, rotationSpeed, ox, oy, oz);
+            rotatingCube = true;
+        }
+        else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W)) {
+            for(int x = 0; x < 3; x++)
+                for(int y = 0; y < 3; y++)
+                    for(int z = 0; z < 3; z++)
+                        rubixCube[x][y][z].rotateX(1, rotationSpeed, ox, oy, oz);
+            rotatingCube = true;
+        }
+        else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)) {
+            for(int x = 0; x < 3; x++)
+                for(int y = 0; y < 3; y++)
+                    for(int z = 0; z < 3; z++)
+                        rubixCube[x][y][z].rotateX(-1, rotationSpeed, ox, oy, oz);
+            rotatingCube = true;
+        }
+        else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Q)) {
+            for(int x = 0; x < 3; x++)
+                for(int y = 0; y < 3; y++)
+                    for(int z = 0; z < 3; z++)
+                        rubixCube[x][y][z].rotateZ(1, rotationSpeed, ox, oy, oz);
+            rotatingCube = true;
+        }
+        else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::E)) {
+            for(int x = 0; x < 3; x++)
+                for(int y = 0; y < 3; y++)
+                    for(int z = 0; z < 3; z++)
+                        rubixCube[x][y][z].rotateZ(-1, rotationSpeed, ox, oy, oz);
+            rotatingCube = true;
+        } 
+        else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num1)) {
+            f += 30.f;
+            zooming = true;
+        } 
+        else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num2)) {
+            f -= 30.f;
+            zooming = true;
+        } 
+
+        // if(rotating) {
+        //     if(rotationSound.getStatus() != sf::Sound::Status::Playing)
+        //         rotationSound.play();
+        // } else {
+        //     if(rotationSound.getStatus() == sf::Sound::Status::Playing)
+        //         rotationSound.stop();
+        // }
+
+        // if(zooming) {
+        //     if(zoomSound.getStatus() != sf::Sound::Status::Playing) {
+        //         zoomSound.play();
+        //     }
+        // } else {
+        //     if(zoomSound.getStatus() == sf::Sound::Status::Playing) {
+        //         zoomSound.stop();
+        //     }
+        // }
 
         window.clear();
         // focalInfo.setString("Focal length: " + std::to_string((int)f));
