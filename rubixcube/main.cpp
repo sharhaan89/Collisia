@@ -356,30 +356,48 @@ int main() {
                 if(!rotatingFace) {
                 if(key->code == sf::Keyboard::Key::Numpad1) {
                     rotateFace(0, 0);
+                    moves.push_back({0, 0});
+                    stateIndex++;
                 }
                 else if(key->code == sf::Keyboard::Key::Numpad2) {
                     rotateFace(0, 1);
+                    moves.push_back({0, 1});
+                    stateIndex++;
                 }
                 else if(key->code == sf::Keyboard::Key::Numpad3) {
                     rotateFace(0, 2);
+                    moves.push_back({0, 2});
+                    stateIndex++;
                 }
                 else if(key->code == sf::Keyboard::Key::Numpad4) {
                     rotateFace(1, 0);
+                    moves.push_back({1, 0});
+                    stateIndex++;
                 }
                 else if(key->code == sf::Keyboard::Key::Numpad5) {
                     rotateFace(1, 1);
+                    moves.push_back({1, 1});
+                    stateIndex++;
                 }
                 else if(key->code == sf::Keyboard::Key::Numpad6) {
                     rotateFace(1, 2);
+                    moves.push_back({1, 2});
+                    stateIndex++;
                 }
                 else if(key->code == sf::Keyboard::Key::Numpad7) {
                     rotateFace(2, 0);
+                    moves.push_back({2, 0});
+                    stateIndex++;
                 }
                 else if(key->code == sf::Keyboard::Key::Numpad8) {
                     rotateFace(2, 1);
+                    moves.push_back({2, 1});
+                    stateIndex++;
                 }
                 else if(key->code == sf::Keyboard::Key::Numpad9) {
                     rotateFace(2, 2);
+                    moves.push_back({2, 2});
+                    stateIndex++;
                 } else if(key->code == sf::Keyboard::Key::T) {
                     scrambleCube(10);
                 } else if(key->code == sf::Keyboard::Key::Y) {
