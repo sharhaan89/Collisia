@@ -32,6 +32,11 @@ int rotatingAxis = -1;
 int rotatingLayer = -1;
 float steps = 6; //number of degrees to rotate per frame 
 
+//simple solver by destacking the moves in reverse
+int stateIndex = -1;
+bool isSolving = false;
+std::vector<std::pair<int, int>> moves; //{axis, layer}
+
 std::vector<TriangleUtils::Triangle> triangles;
 Cube rubixCube[3][3][3];
 
@@ -90,9 +95,12 @@ void drawCubes(sf::RenderWindow& window) {
 
 void resetCube() {
     triangles.clear();
+    moves.clear();
     createCubes();
 
     rotatingFace = false;
+    isSolving = false;
+    stateIndex = -1;
     rotatingDone = 0.f;
     rotatingAxis = -1;
     rotatingLayer = -1;
@@ -107,7 +115,7 @@ void rotateFace(int axis, int layer) {
 }
 
 //just rotates a face
-void rotateFaceX(int x, float rotationAmount) {
+void rotateFaceX(int x, int dir, float rotationAmount) {
     auto& centerCube = rubixCube[x][1][1];
     auto centerVertex = centerCube.getCubeCenter();
     float fcx = centerVertex.x;
@@ -134,12 +142,12 @@ void rotateFaceX(int x, float rotationAmount) {
     for(int y = 0; y < 3; y++) {
         for(int z = 0; z < 3; z++) {
             auto& currentCube = rubixCube[x][y][z];
-            currentCube.rotateAxis(1, rotationAmount, fcx, fcy, fcz, dx, dy, dz);
+            currentCube.rotateAxis(dir, rotationAmount, fcx, fcy, fcz, dx, dy, dz);
         }
     }
 }
 
-void rotateFaceY(int y, float rotationAmount) {
+void rotateFaceY(int y, int dir, float rotationAmount) {
     auto& centerCube = rubixCube[1][y][1];
     auto centerVertex = centerCube.getCubeCenter();
     float fcx = centerVertex.x;
@@ -160,12 +168,12 @@ void rotateFaceY(int y, float rotationAmount) {
     for(int x = 0; x < 3; x++) {
         for(int z = 0; z < 3; z++) {
             auto& currentCube = rubixCube[x][y][z];
-            currentCube.rotateAxis(1, rotationAmount, fcx, fcy, fcz, dx, dy, dz);
+            currentCube.rotateAxis(dir, rotationAmount, fcx, fcy, fcz, dx, dy, dz);
         }
     }
 }
 
-void rotateFaceZ(int z, float rotationAmount) {
+void rotateFaceZ(int z, int dir, float rotationAmount) {
     auto& centerCube = rubixCube[1][1][z];
     auto centerVertex = centerCube.getCubeCenter();
     
@@ -187,12 +195,12 @@ void rotateFaceZ(int z, float rotationAmount) {
     for(int x = 0; x < 3; x++) {
         for(int y = 0; y < 3; y++) {
             auto& currentCube = rubixCube[x][y][z];
-            currentCube.rotateAxis(1, rotationAmount, fcx, fcy, fcz, dx, dy, dz);
+            currentCube.rotateAxis(dir, rotationAmount, fcx, fcy, fcz, dx, dy, dz);
         }
     }
 }
 
-void rotateLogicallyX(int x) {
+void rotateLogicallyX(int x, int direction) {
     //anti-clockwise rotation
     for(int y = 0; y < 3; y++) {
         for(int z = y + 1; z < 3; z++) {
@@ -200,12 +208,18 @@ void rotateLogicallyX(int x) {
         }
     }
     
-    for(int z = 0; z < 3; z++) {
-        std::swap(rubixCube[x][0][z], rubixCube[x][2][z]);
+    if(direction == 1) {
+        for(int z = 0; z < 3; z++) {
+            std::swap(rubixCube[x][0][z], rubixCube[x][2][z]);
+        }
+    } else if(direction == -1) {
+        for(int y = 0; y < 3; y++) {
+            std::swap(rubixCube[x][y][0], rubixCube[x][y][2]);
+        }
     }
 }
 
-void rotateLogicallyY(int y) {
+void rotateLogicallyY(int y, int direction) {
     //clockwise rotation
     for(int x = 0; x < 3; x++) {
         for(int z = x + 1; z < 3; z++) {
@@ -213,12 +227,18 @@ void rotateLogicallyY(int y) {
         }
     }
     
-    for(int x = 0; x < 3; x++) {
-        std::swap(rubixCube[x][y][0], rubixCube[x][y][2]);
+    if(direction == 1) {
+        for(int x = 0; x < 3; x++) {
+            std::swap(rubixCube[x][y][0], rubixCube[x][y][2]);
+        }
+    } else if(direction == -1) {
+        for(int z = 0; z < 3; z++) {
+            std::swap(rubixCube[0][y][z], rubixCube[2][y][z]);
+        }
     }
 }
 
-void rotateLogicallyZ(int z) {
+void rotateLogicallyZ(int z, int direction) {
     //anti-clockwise rotation
     for(int x = 0; x < 3; x++) {
         for(int y = x + 1; y < 3; y++) {
@@ -226,8 +246,14 @@ void rotateLogicallyZ(int z) {
         }
     }
     
-    for(int y = 0; y < 3; y++) {
-        std::swap(rubixCube[0][y][z], rubixCube[2][y][z]);
+    if(direction == 1) {
+        for(int y = 0; y < 3; y++) {
+            std::swap(rubixCube[0][y][z], rubixCube[2][y][z]);
+        }
+    } else if(direction == -1) {
+        for(int x = 0; x < 3; x++) {
+            std::swap(rubixCube[x][0][z], rubixCube[x][2][z]);
+        }
     }
 }
 
@@ -236,22 +262,26 @@ void scrambleCube(int scramblingFactor) {
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> distrib(0, 2);
 
-    for(int i = 0; i < scramblingFactor * 100; i++) {
+    for(int i = 0; i < scramblingFactor; i++) {
         int randomAxis = distrib(gen);
         int randomLayer = distrib(gen);
         if(randomAxis == 0) {
-            rotateFaceX(randomLayer, 90);
-            rotateLogicallyX(randomLayer);
+            rotateFaceX(randomLayer, 1, 90);
+            rotateLogicallyX(randomLayer, 1);
         }
         else if(randomAxis == 1) {
-            rotateFaceY(randomLayer, 90);
-            rotateLogicallyY(randomLayer);
+            rotateFaceY(randomLayer, 1, 90);
+            rotateLogicallyY(randomLayer, 1);
         }
         else if(randomAxis == 2) {
-            rotateFaceZ(randomLayer, 90);
-            rotateLogicallyZ(randomLayer);
+            rotateFaceZ(randomLayer, 1, 90);
+            rotateLogicallyZ(randomLayer, 1);
         }
+
+        moves.push_back({randomAxis, randomLayer});
     }
+
+    stateIndex = moves.size() - 1;
 }
 
 int main() {
@@ -350,43 +380,81 @@ int main() {
                 }
                 else if(key->code == sf::Keyboard::Key::Numpad9) {
                     rotateFace(2, 2);
+                } else if(key->code == sf::Keyboard::Key::T) {
+                    scrambleCube(10);
+                } else if(key->code == sf::Keyboard::Key::Y) {
+                    scrambleCube(20);
+                } else if(key->code == sf::Keyboard::Key::U) {
+                    scrambleCube(30);
+                } else if(key->code == sf::Keyboard::Key::K) {
+                    rotatingFace = true;
+                    isSolving = true;
+                    rotatingAxis = moves[stateIndex].first;
+                    rotatingLayer = moves[stateIndex].second;
+                    stateIndex--;
                 }
                 }
                 
                 if(key->code == sf::Keyboard::Key::R) {
                     resetCube();
-                } else if(key->code == sf::Keyboard::Key::T) {
-                    scrambleCube(1);
-                } else if(key->code == sf::Keyboard::Key::Y) {
-                    scrambleCube(50);
-                } else if(key->code == sf::Keyboard::Key::U) {
-                    scrambleCube(100);
-                }
+                } 
             }
         }
 
-        if(rotatingFace && rotatingDone < 90) {
+        if(isSolving && rotatingDone < 90) {
             if(rotatingAxis == 0) {
-                rotateFaceX(rotatingLayer, steps);
+                rotateFaceX(rotatingLayer, -1, steps);
                 rotatingDone += steps;
             } else if(rotatingAxis == 1) {
-                rotateFaceY(rotatingLayer, steps);
+                rotateFaceY(rotatingLayer, -1, steps);
                 rotatingDone += steps;
             } else if(rotatingAxis == 2) {
-                rotateFaceZ(rotatingLayer, steps);
+                rotateFaceZ(rotatingLayer, -1, steps);
+                rotatingDone += steps;
+            }
+        } else if(rotatingFace && rotatingDone < 90) {
+            if(rotatingAxis == 0) {
+                rotateFaceX(rotatingLayer, 1, steps);
+                rotatingDone += steps;
+            } else if(rotatingAxis == 1) {
+                rotateFaceY(rotatingLayer, 1, steps);
+                rotatingDone += steps;
+            } else if(rotatingAxis == 2) {
+                rotateFaceZ(rotatingLayer, 1, steps);
                 rotatingDone += steps;
             }
         }
 
         if(rotatingDone >= 90) {
-            if(rotatingAxis == 0) rotateLogicallyX(rotatingLayer);
-            else if(rotatingAxis == 1) rotateLogicallyY(rotatingLayer);
-            else if(rotatingAxis == 2) rotateLogicallyZ(rotatingLayer);
-            rotatingFace = false;
-            rotatingDone = 0.f;
-            rotatingAxis = -1;
-            rotatingLayer = -1;
-            
+            if(isSolving) {
+                if(rotatingAxis == 0) rotateLogicallyX(rotatingLayer, -1);
+                else if(rotatingAxis == 1) rotateLogicallyY(rotatingLayer, -1);
+                else if(rotatingAxis == 2) rotateLogicallyZ(rotatingLayer, -1);
+
+                if(stateIndex < 0) {
+                    moves.clear();
+                    isSolving = false;
+                    rotatingFace = false;
+                    stateIndex = -1;
+                    rotatingDone = 0.f;
+                    rotatingAxis = -1;
+                    rotatingLayer = -1;
+                } else {
+                    rotatingAxis = moves[stateIndex].first;
+                    rotatingLayer = moves[stateIndex].second;
+                    rotatingDone = 0.f;
+                    stateIndex--;
+                }
+            } else {
+                if(rotatingAxis == 0) rotateLogicallyX(rotatingLayer, 1);
+                else if(rotatingAxis == 1) rotateLogicallyY(rotatingLayer, 1);
+                else if(rotatingAxis == 2) rotateLogicallyZ(rotatingLayer, 1);
+                rotatingFace = false;
+                rotatingDone = 0.f;
+                rotatingAxis = -1;
+                rotatingLayer = -1;
+            }
+
         }
         
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
@@ -430,7 +498,7 @@ int main() {
                     for(int z = 0; z < 3; z++)
                         rubixCube[x][y][z].rotateZ(-1, rotationSpeed, ox, oy, oz);
             rotatingCube = true;
-        } 
+        }
         else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num1)) {
             f += 30.f;
             zooming = true;
