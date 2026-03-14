@@ -1,4 +1,7 @@
 #include "Player.hpp"
+#include <cmath>
+
+#define PI 3.14159265f
 
 Player::Player(float x, float y, float z, float angle, float movementSpeed, float rotationSpeed) {
     this->camX = x;
@@ -15,20 +18,40 @@ void Player::setPosition(float x, float y, float z) {
     camZ = z;
 }
 
-void Player::moveLeft(float dt) {
-    camX -= movementSpeed * dt;
+float Player::getAngle() {
+    return angle;
 }
 
-void Player::moveRight(float dt) {
-    camX += movementSpeed * dt;
+float Player::getCamX() {
+    return camX;
+}
+
+float Player::getCamY() {
+    return camY;
+}
+
+float Player::getCamZ() {
+    return camZ;
 }
 
 void Player::moveForward(float dt) {
-    camZ += movementSpeed * dt;
+    camX += std::sin(angle * PI / 180.f) * movementSpeed * dt;
+    camZ += std::cos(angle * PI / 180.f) * movementSpeed * dt;
 }
 
 void Player::moveBackward(float dt) {
-    camZ -= movementSpeed * dt;
+    camX -= std::sin(angle * PI / 180.f) * movementSpeed * dt;
+    camZ -= std::cos(angle * PI / 180.f) * movementSpeed * dt;
+}
+
+void Player::moveLeft(float dt) {
+    camX -= std::cos(angle * PI / 180.f) * movementSpeed * dt;
+    camZ += std::sin(angle * PI / 180.f) * movementSpeed * dt;
+}
+
+void Player::moveRight(float dt) {
+    camX += std::cos(angle * PI / 180.f) * movementSpeed * dt;
+    camZ -= std::sin(angle * PI / 180.f) * movementSpeed * dt;
 }
 
 void Player::rotateLeft(float dt) {

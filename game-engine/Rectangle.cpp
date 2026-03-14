@@ -1,9 +1,9 @@
 #include "Rectangle.hpp"
 
 float Rectangle::camX = 0.f;
-float Rectangle::camY = 0.f;
-float Rectangle::camZ = 10.f;
-float Rectangle::focalLength = 500.f;
+float Rectangle::camY = 150.f;
+float Rectangle::camZ = 300.f;
+float Rectangle::focalLength = 600.f;
 
 Rectangle::Rectangle(float x, float y, float z, float width, float height) {
     this->x = x;

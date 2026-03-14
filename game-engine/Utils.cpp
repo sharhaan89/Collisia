@@ -51,15 +51,18 @@ void drawTriangle(sf::RenderWindow& window, Triangle& tr, float camX, float camY
     auto p2 = transformVertex(tr.v2, camX, camY, camZ, f, WINDOW_WIDTH, WINDOW_HEIGHT);
     auto p3 = transformVertex(tr.v3, camX, camY, camZ, f, WINDOW_WIDTH, WINDOW_HEIGHT);
 
-    // sf::ConvexShape triangle;
-    // triangle.setPointCount(3);
-    // triangle.setPoint(0, sf::Vector2f(p1.x, p1.y));
-    // triangle.setPoint(1, sf::Vector2f(p2.x, p2.y));
-    // triangle.setPoint(2, sf::Vector2f(p3.x, p3.y));
-    // triangle.setFillColor(getColor(tr.color));
-    // triangle.setOutlineThickness(1.f);
-    // triangle.setOutlineColor(sf::Color::Black);
-    // window.draw(triangle);   
+    if(p1.x == -6999.f || p2.x == -6999.f || p3.x == -6999.f)
+        return;
+
+    sf::ConvexShape triangle;
+    triangle.setPointCount(3);
+    triangle.setPoint(0, sf::Vector2f(p1.x, p1.y));
+    triangle.setPoint(1, sf::Vector2f(p2.x, p2.y));
+    triangle.setPoint(2, sf::Vector2f(p3.x, p3.y));
+    triangle.setFillColor(getColor(tr.color));
+    triangle.setOutlineThickness(1.f);
+    triangle.setOutlineColor(sf::Color::Black);
+    window.draw(triangle);   
 
     sf::Vertex line1[2];
     line1[0].position = sf::Vector2f(p1.x, p1.y);
@@ -79,9 +82,9 @@ void drawTriangle(sf::RenderWindow& window, Triangle& tr, float camX, float camY
     line3[1].position = sf::Vector2f(p1.x, p1.y);
     line3[1].color = sf::Color::Black;
 
-    window.draw(line1, 2, sf::PrimitiveType::Lines);
-    window.draw(line2, 2, sf::PrimitiveType::Lines);
-    window.draw(line3, 2, sf::PrimitiveType::Lines);
+    // window.draw(line1, 2, sf::PrimitiveType::Lines);
+    // window.draw(line2, 2, sf::PrimitiveType::Lines);
+    // window.draw(line3, 2, sf::PrimitiveType::Lines);
 }
 
 }
