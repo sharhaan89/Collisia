@@ -3,15 +3,17 @@
 
 using Utils::Vec3;
 
-Vec3 Rectangle::cam = {0.f, 150.f, 300.f};
-float Rectangle::focalLength = 600.f;
-
 Rectangle::Rectangle(const Vec3& pos, const Vec3& normal, float width, float height) {
     this->pos = pos;
     this->normal = normal;
     this->width = width;
     this->height = height;
     setTriangles();
+}
+
+void Rectangle::setColor(char c1, char c2) {
+    color1 = c1;
+    color2 = c2;
 }
 
 void Rectangle::setTriangles() {
@@ -43,11 +45,11 @@ void Rectangle::setTriangles() {
     Vec3 C = {pos.x - u.x + v.x, pos.y - u.y + v.y, pos.z - u.z + v.z};
     Vec3 D = {pos.x + u.x - v.x, pos.y + u.y - v.y, pos.z + u.z - v.z};
 
-    tr1 = {'R', A, B, C};
-    tr2 = {'G', B, A, D};
+    tr1 = {color1, A, B, C};
+    tr2 = {color2, B, A, D};
 }
 
-void Rectangle::setCenter(Vec3& pos) {
+void Rectangle::setCenter(const Vec3& pos) {
     this->pos = pos;
 }
 
@@ -56,7 +58,7 @@ void Rectangle::setDimensions(float width, float height) {
     this->height = height;
 }
 
-void Rectangle::render(sf::RenderWindow& window) {
-    Utils::drawTriangle(window, tr1, cam, focalLength);
-    Utils::drawTriangle(window, tr2, cam, focalLength);
+void Rectangle::render(sf::RenderWindow& window, const Vec3& cam, float angle, float focalLength) {
+    Utils::drawTriangle(window, tr1, cam, angle, focalLength);
+    Utils::drawTriangle(window, tr2, cam, angle, focalLength);
 }

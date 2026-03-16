@@ -24,7 +24,7 @@ struct Triangle {
 
 sf::Color getColor(char color);
 float getTriangleDepth(Triangle& t, float camZ);
-Point transformVertex(Vec3& vertex, Vec3& cam, float f, float WINDOW_WIDTH, float WINDOW_HEIGHT);
-void drawTriangle(sf::RenderWindow& window, Triangle& tr, Vec3& cam, float f);
+Point transformVertex(const Vec3& vertex, const Vec3& cam, float angle, float f, float WINDOW_WIDTH, float WINDOW_HEIGHT);
+void drawTriangle(sf::RenderWindow& window, Triangle& tr, const Vec3& cam, float angle, float f);
 
 }

@@ -14,6 +14,8 @@ Vec3 normal;
 char color;
 float width;
 float height;
+char color1;
+char color2;
 Utils::Triangle tr1;
 Utils::Triangle tr2;
 
@@ -24,7 +26,8 @@ static float focalLength;
 
 Rectangle(const Vec3& pos, const Vec3& normal, float width, float height);
 void setTriangles();
-void render(sf::RenderWindow& window);
-void setCenter(Vec3& pos);
+void render(sf::RenderWindow& window, const Vec3& cam, float angle, float focalLength);
+void setCenter(const Vec3& pos);
+void setColor(char c1, char c2);
 void setDimensions(float width, float height);
 };

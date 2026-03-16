@@ -14,13 +14,18 @@ Vec3 cam;
 float angle;
 float movementSpeed;
 float rotationSpeed;
+float sprintFactor;
+bool sprinting;
 
 public:
 
-Player(Vec3& pos, float angle, float movementSpeed, float rotationSpeed);
-void setPosition(Vec3& pos);
+Player(const Vec3& pos, float angle, float movementSpeed, float rotationSpeed);
+void setPosition(const Vec3& pos);
 Vec3 getCam();
 float getAngle();
+void setSprintFactor(float val);
+void setSprint(bool val);
+bool isSprinting();
 void moveLeft(float dt);
 void moveRight(float dt);
 void moveForward(float dt);
