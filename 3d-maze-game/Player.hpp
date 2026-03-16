@@ -1,27 +1,26 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
+#include "Utils.hpp"
+
+using Utils::Vec3;
 
 class Player {
 
 private:
 
 //these are basically the coordinates of the player (first person)
-float camX;
-float camY;
-float camZ;
+Vec3 cam;
 float angle;
 float movementSpeed;
 float rotationSpeed;
 
 public:
 
-Player(float x, float y, float z, float angle, float movementSpeed, float rotationSpeed);
-void setPosition(float x, float y, float z);
+Player(Vec3& pos, float angle, float movementSpeed, float rotationSpeed);
+void setPosition(Vec3& pos);
+Vec3 getCam();
 float getAngle();
-float getCamX();
-float getCamY();
-float getCamZ();
 void moveLeft(float dt);
 void moveRight(float dt);
 void moveForward(float dt);

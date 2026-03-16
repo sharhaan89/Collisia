@@ -9,10 +9,10 @@ float getTriangleDepth(Triangle& t, float camZ) {
     return (z1 + z2 + z3) / 3.f;
 }
 
-Point transformVertex(Vertex& vertex, float camX, float camY, float camZ, float f, float WINDOW_WIDTH, float WINDOW_HEIGHT) {
-    float viewX = vertex.x - camX;
-    float viewY = vertex.y - camY;
-    float viewZ = vertex.z - camZ;
+Point transformVertex(Vec3& vertex, Vec3& cam, float f, float WINDOW_WIDTH, float WINDOW_HEIGHT) {
+    float viewX = vertex.x - cam.x;
+    float viewY = vertex.y - cam.y;
+    float viewZ = vertex.z - cam.z;
 
     if(viewZ <= 0) {
         return {Point{-6999.f, -6999.f}};
@@ -43,13 +43,13 @@ sf::Color getColor(char color) {
 }
 
 //p3 should always be the right angle point
-void drawTriangle(sf::RenderWindow& window, Triangle& tr, float camX, float camY, float camZ, float f) {
+void drawTriangle(sf::RenderWindow& window, Triangle& tr, Vec3& cam, float f) {
     float WINDOW_WIDTH = window.getSize().x;
     float WINDOW_HEIGHT = window.getSize().y;
 
-    auto p1 = transformVertex(tr.v1, camX, camY, camZ, f, WINDOW_WIDTH, WINDOW_HEIGHT);
-    auto p2 = transformVertex(tr.v2, camX, camY, camZ, f, WINDOW_WIDTH, WINDOW_HEIGHT);
-    auto p3 = transformVertex(tr.v3, camX, camY, camZ, f, WINDOW_WIDTH, WINDOW_HEIGHT);
+    auto p1 = transformVertex(tr.v1, cam, f, WINDOW_WIDTH, WINDOW_HEIGHT);
+    auto p2 = transformVertex(tr.v2, cam, f, WINDOW_WIDTH, WINDOW_HEIGHT);
+    auto p3 = transformVertex(tr.v3, cam, f, WINDOW_WIDTH, WINDOW_HEIGHT);
 
     if(p1.x == -6999.f || p2.x == -6999.f || p3.x == -6999.f)
         return;
